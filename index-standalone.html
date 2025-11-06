@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finanzas Personales</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+:root{--primary-color:#667eea;--secondary-color:#764ba2;--success-color:#48bb78;--danger-color:#f56565;--warning-color:#ed8936;--info-color:#4299e1;--bg-color:#f7fafc;--text-primary:#2d3748;--text-secondary:#718096;--border-color:#e2e8f0;--income-color:#48bb78;--expense-color:#f56565;--balance-color:#667eea;--shadow-sm:0 1px 3px rgba(0,0,0,.1);--shadow-md:0 4px 6px rgba(0,0,0,.1);--shadow-lg:0 10px 15px rgba(0,0,0,.1);--radius-sm:6px;--radius-md:12px;--radius-lg:16px;--transition:all .3s ease}*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-color);color:var(--text-primary);line-height:1.6;min-height:100vh;display:flex;flex-direction:column}.container{max-width:1400px;margin:0 auto;padding:0 20px;width:100%}.notifications-container{position:fixed;top:20px;right:20px;z-index:10000;display:flex;flex-direction:column;gap:10px;max-width:400px}.notification{background:#fff;padding:16px 20px;border-radius:var(--radius-md);box-shadow:var(--shadow-lg);display:flex;align-items:center;gap:12px;animation:slideIn .3s ease;border-left:4px solid var(--info-color)}.notification.success{border-left-color:var(--success-color)}.notification.error{border-left-color:var(--danger-color)}.notification.warning{border-left-color:var(--warning-color)}.notification i{font-size:20px}.notification.success i{color:var(--success-color)}.notification.error i{color:var(--danger-color)}.notification.warning i{color:var(--warning-color)}.notification.info i{color:var(--info-color)}.notification-content{flex:1}.notification-content p{margin:0;font-size:14px;font-weight:500}@keyframes slideIn{from{transform:translateX(400px);opacity:0}to{transform:translateX(0);opacity:1}}.header{background:linear-gradient(135deg,var(--primary-color) 0%,var(--secondary-color) 100%);color:#fff;padding:20px 0;box-shadow:var(--shadow-md)}.header-content{display:flex;justify-content:space-between;align-items:center}.logo{display:flex;align-items:center;gap:12px;font-size:24px;font-weight:700}.logo i{font-size:28px}.header-actions{display:flex;gap:10px}.tabs-navigation{background:#fff;border-bottom:2px solid var(--border-color);box-shadow:var(--shadow-sm);position:sticky;top:0;z-index:100}.tabs{display:flex;gap:0;overflow-x:auto;scrollbar-width:none}.tabs::-webkit-scrollbar{display:none}.tab-btn{background:0 0;border:none;padding:16px 24px;font-size:15px;font-weight:500;color:var(--text-secondary);cursor:pointer;transition:var(--transition);border-bottom:3px solid transparent;white-space:nowrap;display:flex;align-items:center;gap:8px}.tab-btn i{font-size:16px}.tab-btn:hover{color:var(--primary-color);background:rgba(102,126,234,.05)}.tab-btn.active{color:var(--primary-color);border-bottom-color:var(--primary-color);background:rgba(102,126,234,.05)}.main-content{flex:1;padding:30px 0}.tab-content{display:none;animation:fadeIn .3s ease}.tab-content.active{display:block}@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}section{margin-bottom:40px}.section-header{margin-bottom:24px}.section-header h2{font-size:28px;font-weight:700;color:var(--text-primary);display:flex;align-items:center;gap:12px;margin-bottom:8px}.section-header p{color:var(--text-secondary);font-size:15px;margin-left:40px}.upload-section{margin-bottom:30px}.upload-area{background:#fff;border:3px dashed var(--border-color);border-radius:var(--radius-lg);padding:60px 40px;text-align:center;cursor:pointer;transition:var(--transition)}.upload-area:hover{border-color:var(--primary-color);background:rgba(102,126,234,.02)}.upload-area.drag-over{border-color:var(--primary-color);background:rgba(102,126,234,.1);transform:scale(1.02)}.upload-area i{font-size:64px;color:var(--primary-color);margin-bottom:20px}.upload-area h3{font-size:22px;font-weight:600;color:var(--text-primary);margin-bottom:10px}.upload-area p{color:var(--text-secondary);margin:10px 0}.upload-hint{font-size:13px;color:var(--text-secondary);margin-top:15px}.btn{padding:12px 24px;border:none;border-radius:var(--radius-md);font-size:15px;font-weight:500;cursor:pointer;transition:var(--transition);display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-family:inherit}.btn i{font-size:16px}.btn-primary{background:linear-gradient(135deg,var(--primary-color) 0%,var(--secondary-color) 100%);color:#fff}.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)}.btn-secondary{background:var(--text-secondary);color:#fff}.btn-secondary:hover{background:var(--text-primary)}.btn-danger{background:var(--danger-color);color:#fff}.btn-danger:hover{background:#e53e3e}.btn-sm{padding:8px 16px;font-size:14px}.btn:disabled{opacity:.5;cursor:not-allowed}.expenses-summary,.income-summary,.month-summary,.rules-summary,.summary-cards,.summary-section{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px;margin-bottom:30px}.summary-card{background:#fff;border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);display:flex;align-items:center;gap:20px;transition:var(--transition)}.summary-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}.card-icon{width:56px;height:56px;border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;font-size:24px;color:#fff;flex-shrink:0}.summary-card.balance .card-icon{background:linear-gradient(135deg,var(--balance-color) 0%,var(--secondary-color) 100%)}.summary-card.income .card-icon{background:linear-gradient(135deg,#48bb78 0%,#38a169 100%)}.summary-card.expense .card-icon{background:linear-gradient(135deg,#f56565 0%,#e53e3e 100%)}.summary-card.transactions .card-icon{background:linear-gradient(135deg,#4299e1 0%,#3182ce 100%)}.summary-card:not(.balance):not(.income):not(.expense):not(.transactions) .card-icon{background:linear-gradient(135deg,var(--primary-color) 0%,var(--secondary-color) 100%)}.card-content{flex:1}.card-label{font-size:13px;color:var(--text-secondary);font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}.card-value{font-size:28px;font-weight:700;color:var(--text-primary)}.charts-section{margin-bottom:30px}.charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(500px,1fr));gap:24px;margin-bottom:30px}.chart-card{background:#fff;border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm)}.chart-card h3{font-size:18px;font-weight:600;color:var(--text-primary);margin-bottom:20px;display:flex;align-items:center;gap:10px}.chart-container{position:relative}.month-selector-card{background:#fff;border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);margin-bottom:24px}.selector-controls{display:flex;align-items:center;justify-content:center;gap:12px}.form-select{padding:10px 16px;border:2px solid var(--border-color);border-radius:var(--radius-md);font-size:15px;font-weight:500;color:var(--text-primary);background:#fff;cursor:pointer;transition:var(--transition);font-family:inherit}.form-select:hover{border-color:var(--primary-color)}.form-select:focus{outline:0;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(102,126,234,.1)}.rules-actions{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}.info-card{background:#ebf8ff;border:2px solid #bee3f8;border-radius:var(--radius-lg);padding:24px;margin-top:24px}.info-card h4{font-size:18px;font-weight:600;color:var(--info-color);margin-bottom:12px;display:flex;align-items:center;gap:10px}.info-card ul{list-style:none;padding:0}.info-card li{padding:8px 0;color:var(--text-primary);line-height:1.6}.info-card li strong{color:var(--info-color)}.filters-card{background:#fff;border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm);margin-bottom:20px}.filters-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.search-box{flex:1;min-width:250px;position:relative}.search-box i{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-secondary)}.search-box input{width:100%;padding:10px 16px 10px 40px;border:2px solid var(--border-color);border-radius:var(--radius-md);font-size:15px;transition:var(--transition);font-family:inherit}.search-box input:focus{outline:0;border-color:var(--primary-color);box-shadow:0 0 0 3px rgba(102,126,234,.1)}.filter-info{margin-top:12px;color:var(--text-secondary);font-size:14px}.table-card{background:#fff;border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-sm);margin-bottom:24px}.table-card h3{font-size:18px;font-weight:600;color:var(--text-primary);margin-bottom:20px;display:flex;align-items:center;gap:10px}.table-responsive{overflow-x:auto}.data-table{width:100%;border-collapse:collapse}.data-table thead{background:var(--bg-color)}.data-table th{padding:14px 16px;text-align:left;font-size:13px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;cursor:pointer;user-select:none}.data-table th:hover{background:var(--border-color)}.data-table th i{margin-left:4px;font-size:12px}.data-table td{padding:14px 16px;border-top:1px solid var(--border-color);font-size:14px}.data-table tbody tr{transition:var(--transition)}.data-table tbody tr:hover{background:rgba(102,126,234,.02)}.data-table .empty-state{text-align:center;color:var(--text-secondary);font-style:italic;padding:40px!important}.amount-income{color:var(--income-color);font-weight:600}.amount-expense{color:var(--expense-color);font-weight:600}.category-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;background:var(--bg-color);color:var(--text-primary);cursor:pointer;transition:var(--transition)}.category-badge:hover{background:var(--border-color)}.category-badge i{font-size:14px}.category-editor{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;animation:fadeIn .2s ease}.editor-content{background:#fff;border-radius:var(--radius-lg);padding:30px;max-width:600px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:var(--shadow-lg)}.editor-content h4{font-size:20px;font-weight:600;margin-bottom:16px;color:var(--text-primary)}.editor-description{padding:12px;background:var(--bg-color);border-radius:var(--radius-md);margin-bottom:20px;font-size:14px;color:var(--text-secondary)}.editor-categories{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-bottom:20px}.editor-category-btn{padding:12px 16px;border:2px solid var(--border-color);border-radius:var(--radius-md);background:#fff;color:var(--text-primary);font-size:14px;font-weight:500;cursor:pointer;transition:var(--transition);display:flex;align-items:center;gap:8px;text-align:left}.editor-category-btn:hover{border-color:var(--primary-color);background:rgba(102,126,234,.05)}.editor-category-btn i{font-size:16px}.editor-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.action-btn{background:0 0;border:none;padding:6px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:var(--transition);color:var(--text-secondary);font-size:14px}.action-btn:hover{background:var(--bg-color);color:var(--primary-color)}.action-btn.delete:hover{color:var(--danger-color)}.footer{background:#fff;border-top:1px solid var(--border-color);padding:20px 0;margin-top:auto}.footer p{text-align:center;color:var(--text-secondary);font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px}.footer i{color:var(--success-color)}@media (max-width:1024px){.charts-grid{grid-template-columns:1fr}}@media (max-width:768px){.header-content{flex-direction:column;gap:16px;text-align:center}.logo{font-size:20px}.tab-btn span{display:none}.tab-btn{padding:16px;justify-content:center}.expenses-summary,.income-summary,.month-summary,.rules-summary,.summary-cards{grid-template-columns:1fr}.charts-grid{grid-template-columns:1fr}.filters-row{flex-direction:column}.search-box{width:100%}.btn-text{display:none}.section-header h2{font-size:22px}.section-header p{margin-left:0;font-size:14px}.upload-area{padding:40px 20px}.editor-categories{grid-template-columns:1fr}.selector-controls{flex-wrap:wrap}}@media (max-width:480px){.container{padding:0 12px}.main-content{padding:20px 0}.chart-card,.filters-card,.table-card{padding:16px}.summary-card{padding:16px}.card-value{font-size:24px}}
+</style>
+</head>
+<body>
+<div id="notifications" class="notifications-container"></div>
+<header class="header">
+<div class="container">
+<div class="header-content">
+<div class="logo"><i class="fas fa-chart-line"></i><span>Finanzas Personales</span></div>
+<div class="header-actions">
+<button id="clearDataBtn" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i><span class="btn-text">Borrar Datos</span></button>
+</div>
+</div>
+</div>
+</header>
+
+<nav class="tabs-navigation">
+<div class="container">
+<div class="tabs">
+<button class="tab-btn active" data-tab="dashboard"><i class="fas fa-home"></i><span>Dashboard</span></button>
+<button class="tab-btn" data-tab="ingresos"><i class="fas fa-arrow-up"></i><span>Ingresos</span></button>
+<button class="tab-btn" data-tab="gastos"><i class="fas fa-arrow-down"></i><span>Gastos</span></button>
+<button class="tab-btn" data-tab="balance"><i class="fas fa-calendar-alt"></i><span>Balance Mensual</span></button>
+<button class="tab-btn" data-tab="reglas"><i class="fas fa-cogs"></i><span>Reglas</span></button>
+<button class="tab-btn" data-tab="transacciones"><i class="fas fa-list"></i><span>Transacciones</span></button>
+</div>
+</div>
+</nav>
+
+<main class="main-content">
+<div class="container">
+
+<div id="tab-dashboard" class="tab-content active">
+<section class="upload-section">
+<div class="section-header">
+<h2><i class="fas fa-upload"></i> Cargar Movimientos Bancarios</h2>
+<p>Arrastra archivos CSV o Excel de tus bancos</p>
+</div>
+<div id="uploadArea" class="upload-area">
+<i class="fas fa-cloud-upload-alt"></i>
+<h3>Arrastra archivos aquí</h3>
+<p>o</p>
+<button id="selectFileBtn" class="btn btn-primary"><i class="fas fa-folder-open"></i> Seleccionar Archivos</button>
+<input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple hidden>
+<p class="upload-hint">Acepta CSV, Excel (.xlsx, .xls) • Múltiples bancos</p>
+</div>
+</section>
+
+<section class="summary-section">
+<div class="summary-cards">
+<div class="summary-card balance">
+<div class="card-icon"><i class="fas fa-wallet"></i></div>
+<div class="card-content">
+<p class="card-label">Balance Total</p>
+<p class="card-value" id="totalBalance">€0.00</p>
+</div>
+</div>
+<div class="summary-card income">
+<div class="card-icon"><i class="fas fa-arrow-up"></i></div>
+<div class="card-content">
+<p class="card-label">Ingresos Totales</p>
+<p class="card-value" id="totalIncome">€0.00</p>
+</div>
+</div>
+<div class="summary-card expense">
+<div class="card-icon"><i class="fas fa-arrow-down"></i></div>
+<div class="card-content">
+<p class="card-label">Gastos Totales</p>
+<p class="card-value" id="totalExpense">€0.00</p>
+</div>
+</div>
+<div class="summary-card transactions">
+<div class="card-icon"><i class="fas fa-exchange-alt"></i></div>
+<div class="card-content">
+<p class="card-label">Transacciones</p>
+<p class="card-value" id="totalTransactions">0</p>
+</div>
+</div>
+</div>
+</section>
+
+<section class="charts-section">
+<div class="charts-grid">
+<div class="chart-card">
+<h3><i class="fas fa-chart-bar"></i> Ingresos vs Gastos Mensuales</h3>
+<div class="chart-container" style="height:350px"><canvas id="monthlyChart"></canvas></div>
+</div>
+<div class="chart-card">
+<h3><i class="fas fa-chart-pie"></i> Gastos por Categoría</h3>
+<div class="chart-container" style="height:350px"><canvas id="categoryChart"></canvas></div>
+</div>
+<div class="chart-card">
+<h3><i class="fas fa-chart-line"></i> Tendencia de Balance</h3>
+<div class="chart-container" style="height:350px"><canvas id="balanceChart"></canvas></div>
+</div>
+<div class="chart-card">
+<h3><i class="fas fa-chart-bar"></i> Top 10 Categorías</h3>
+<div class="chart-container" style="height:350px"><canvas id="topCategoriesChart"></canvas></div>
+</div>
+</div>
+</section>
+</div>
+
+<div id="tab-ingresos" class="tab-content">
+<section class="income-section">
+<div class="section-header">
+<h2><i class="fas fa-arrow-up"></i> Análisis de Ingresos</h2>
+<p>Tus fuentes de ingreso agrupadas y analizadas</p>
+</div>
+<div class="income-summary">
+<div class="summary-card income">
+<div class="card-icon"><i class="fas fa-euro-sign"></i></div>
+<div class="card-content">
+<p class="card-label">Ingresos Totales</p>
+<p class="card-value" id="incomeTotal">€0.00</p>
+</div>
+</div>
+<div class="summary-card">
+<div class="card-icon"><i class="fas fa-stream"></i></div>
+<div class="card-content">
+<p class="card-label">Fuentes de Ingreso</p>
+<p class="card-value" id="incomeSources">0</p>
+</div>
+</div>
+<div class="summary-card">
+<div class="card-icon"><i class="fas fa-calendar-check"></i></div>
+<div class="card-content">
+<p class="card-label">Ingreso Promedio Mensual</p>
+<p class="card-value" id="incomeAverage">€0.00</p>
+</div>
+</div>
+</div>
+<div class="charts-grid">
+<div class="chart-card">
+<h3><i class="fas fa-chart-pie"></i> Ingresos por Fuente</h3>
+<div class="chart-container" style="height:400px"><canvas id="incomeSourcesChart"></canvas></div>
+</div>
+<div class="chart-card">
+<h3><i class="fas fa-chart-line"></i> Evolución de Ingresos Mensuales</h3>
+<div class="chart-container" style="height:400px"><canvas id="incomeEvolutionChart"></canvas></div>
+</div>
+</div>
+<div class="table-card">
+<h3><i class="fas fa-table"></i> Detalle por Fuente de Ingreso</h3>
+<div class="table-responsive">
+<table class="data-table" id="incomeSourcesTable">
+<thead><tr><th>Fuente</th><th>Total</th><th>Transacciones</th><th>Promedio</th><th>Última Fecha</th></tr></thead>
+<tbody><tr class="empty-state"><td colspan="5">No hay datos de ingresos</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="table-card">
+<h3><i class="fas fa-list"></i> Todas las Transacciones de Ingresos</h3>
+<p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px">Haz clic en cualquier categoría para recategorizarla</p>
+<div class="table-responsive">
+<table class="data-table" id="allIncomeTransactionsTable">
+<thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Importe</th><th>Acciones</th></tr></thead>
+<tbody><tr class="empty-state"><td colspan="5">No hay transacciones de ingresos</td></tr></tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+
+<div id="tab-gastos" class="tab-content">
+<section class="expenses-section">
+<div class="section-header">
+<h2><i class="fas fa-arrow-down"></i> Análisis de Gastos</h2>
+<p>Tus gastos categorizados y analizados</p>
+</div>
+<div class="expenses-summary">
+<div class="summary-card expense">
+<div class="card-icon"><i class="fas fa-euro-sign"></i></div>
+<div class="card-content">
+<p class="card-label">Gastos Totales</p>
+<p class="card-value" id="expensesTotal">€0.00</p>
+</div>
+</div>
+<div class="summary-card">
+<div class="card-icon"><i class="fas fa-tags"></i></div>
+<div class="card-content">
+<p class="card-label">Categorías Activas</p>
+<p class="card-value" id="expensesCategories">0</p>
+</div>
+</div>
+<div class="summary-card">
+<div class="card-icon"><i class="fas fa-calendar-check"></i></div>
+<div class="card-content">
+<p class="card-label">Gasto Promedio Mensual</p>
+<p class="card-value" id="expensesAverage">€0.00</p>
+</div>
+</div>
+</div>
+<div class="charts-grid">
+<div class="chart-card">
+<h3><i class="fas fa-chart-pie"></i> Gastos por Categoría</h3>
+<div class="chart-container" style="height:400px"><canvas id="expensesCategoryChart"></canvas></div>
+</div>
+<div class="chart-card">
+<h3><i class="fas fa-chart-line"></i> Evolución de Gastos Mensuales</h3>
+<div class="chart-container" style="height:400px"><canvas id="expensesEvolutionChart"></canvas></div>
+</div>
+</div>
+<div class="table-card">
+<h3><i class="fas fa-table"></i> Detalle por Categoría</h3>
+<div class="table-responsive">
+<table class="data-table" id="expensesCategoriesTable">
+<thead><tr><th>Categoría</th><th>Total</th><th>Transacciones</th><th>Promedio</th><th>% del Total</th></tr></thead>
+<tbody><tr class="empty-state"><td colspan="5">No hay datos de gastos</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="table-card">
+<h3><i class="fas fa-list"></i> Todas las Transacciones de Gastos</h3>
+<p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px">Haz clic en cualquier categoría para recategorizarla</p>
+<div class="table-responsive">
+<table class="data-table" id="allExpenseTransactionsTable">
+<thead><tr><th>Fecha</th><th>Descripción</th><th>Categoría</th><th>Importe</th><th>Acciones</th></tr></thead>
+<tbody><tr class="empty-state"><td colspan="5">No hay transacciones de gastos</td></tr></tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+
+<div id="tab-balance" class="tab-content">
+<section class="balance-section">
+<div class="section-header">
+<h2><i class="fas fa-calendar-alt"></i> Balance Mensual</h2>
+<p>Análisis detallado mes a mes</p>
+</div>
+<div class="month-selector-card">
+<div class="selector-controls">
+<button id="prevMonth" class="btn btn-secondary btn-sm"><i class="fas fa-chevron-left"></i></button>
+<select id="monthSelect" class="form-select"></select>
+<select id="yearSelect" class="form-select"></select>
+<button id="nextMonth" class="btn btn-secondary btn-sm"><i class="fas fa-chevron-right"></i></button>
+</div>
+</div>
+<div id="selectedMonthSummary" class="month-summary">
+<div class="summary-card income">
+<div class="card-icon"><i class="fas fa-arrow-up"></i></div>
+<div class="card-content">
+<p class="card-label">Ingresos del Mes</p>
+<p class="card-value" id="monthIncome">€0.00</p>
+</div>
+</div>
+<div class="summary-card expense">
+<div class="card-icon"><i class="fas fa-arrow-down"></i></div>
+<div class="card-content">
+<p class="card-label">Gastos del Mes</p>
+<p class="card-value" id="monthExpense">€0.00</p>
+</div>
+</div>
+<div class="summary-card balance">
+<div class="card-icon"><i class="fas fa-balance-scale"></i></div>
+<div class="card-content">
+<p class="card-label">Balance Neto</p>
+<p class="card-value" id="monthBalance">€0.00</p>
+</div>
+</div>
+<div class="summary-card transactions">
+<div class="card-icon"><i class="fas fa-exchange-alt"></i></div>
+<div class="card-content">
+<p class="card-label">Transacciones</p>
+<p class="card-value" id="monthTransactions">0</p>
+</div>
+</div>
+</div>
+<div class="chart-card">
+<h3><i class="fas fa-chart-line"></i> Evolución Mensual</h3>
+<div class="chart-container" style="height:400px"><canvas id="monthlyEvolutionChart"></canvas></div>
+</div>
+<div class="table-card">
+<h3><i class="fas fa-table"></i> Resumen de Todos los Meses</h3>
+<div class="table-responsive">
+<table class="data-table" id="allMonthsTable">
+<thead><tr><th>Mes</th><th>Ingresos</th><th>Gastos</th><th>Balance</th><th>Transacciones</th><th>Ahorro %</th></tr></thead>
+<tbody><tr class="empty-state"><td colspan="6">No hay datos mensuales</td></tr></tbody>
+</table>
+</div>
+</div>
+</section>
+</div>
+
+<div id="tab-reglas" class="tab-content">
+<section class="rules-section">
+<div class="section-header">
+<h2><i class="fas fa-cogs"></i> Gestión de Reglas de Categorización</h2>
+<p>Las reglas automatizan la categorización de tus transacciones futuras</p>
+</div>
+<div class="rules-summary">
+<div class="summary-card">
+<div class="card-icon"><i class="fas fa-list"></i></div>
+<div class="card-content">
+<p class="card-label">Reglas Activas</p>
+<p class="card-value" id="activeRulesCount">0</p>
+</div>
+</div>
+<div class="summary-card">
+<div class="card-icon"><i class="fas fa-check-circle"></i></div>
+<div class="card-content">
+<p class="card-label">Aplicaciones Totales</p>
+<p class="card-value" id="rulesApplications">0</p>
+</div>
+</div>
+<div class="summary-card">
+<div class="card-icon"><i class="fas fa-clock"></i></div>
+<div class="card-content">
+<p class="card-label">Última Actualización</p>
+<p class="card-value" id="lastRuleUpdate">-</p>
+</div>
+</div>
+</div>
+<div class="rules-actions">
+<button id="applyRulesBtn" class="btn btn-primary"><i class="fas fa-play"></i> Aplicar Reglas a Todas las Transacciones</button>
+<button id="clearRulesBtn" class="btn btn-danger"><i class="fas fa-trash"></i> Borrar Todas las Reglas</button>
+</div>
+<div class="table-card">
+<h3><i class="fas fa-table"></i> Reglas Configuradas</h3>
+<div class="table-responsive">
+<table class="data-table" id="rulesTable">
+<thead><tr><th>Patrón de Búsqueda</th><th>Categoría</th><th>Creada</th><th>Aplicaciones</th><th>Acciones</th></tr></thead>
+<tbody><tr class="empty-state"><td colspan="5">No hay reglas configuradas.<br><small>Las reglas se crean automáticamente cuando categorizas transacciones en la pestaña de Transacciones.</small></td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="info-card">
+<h4><i class="fas fa-info-circle"></i> Cómo funcionan las reglas</h4>
+<ul>
+<li><strong>Creación automática:</strong> Cuando categorizas manualmente una transacción en la pestaña "Transacciones", se crea automáticamente una regla para esa descripción.</li>
+<li><strong>Aplicación automática:</strong> Las reglas se aplican automáticamente cuando cargas nuevos archivos bancarios.</li>
+<li><strong>Patrones inteligentes:</strong> Las reglas buscan coincidencias en las descripciones de las transacciones.</li>
+<li><strong>Gestión flexible:</strong> Puedes ver, editar o eliminar reglas individuales desde esta pantalla.</li>
+<li><strong>Reaplicación:</strong> Usa el botón "Aplicar Reglas" para recategorizar todas tus transacciones existentes.</li>
+</ul>
+</div>
+</section>
+</div>
+
+<div id="tab-transacciones" class="tab-content">
+<section class="transactions-section">
+<div class="section-header">
+<h2><i class="fas fa-list"></i> Todas las Transacciones</h2>
+<p>Gestiona y categoriza tus transacciones</p>
+</div>
+<div class="filters-card">
+<div class="filters-row">
+<div class="search-box">
+<i class="fas fa-search"></i>
+<input type="text" id="searchInput" placeholder="Buscar por descripción, importe...">
+</div>
+<select id="categoryFilter" class="form-select">
+<option value="">Todas las categorías</option>
+</select>
+<select id="typeFilter" class="form-select">
+<option value="">Todos los tipos</option>
+<option value="income">Ingresos</option>
+<option value="expense">Gastos</option>
+</select>
+<button id="exportBtn" class="btn btn-secondary"><i class="fas fa-download"></i><span class="btn-text">Exportar CSV</span></button>
+</div>
+<div class="filter-info"><span id="filterInfo">Mostrando 0 transacciones</span></div>
+</div>
+<div class="table-card">
+<div class="table-responsive">
+<table class="data-table" id="transactionsTable">
+<thead><tr><th data-sort="date">Fecha <i class="fas fa-sort"></i></th><th data-sort="description">Descripción <i class="fas fa-sort"></i></th><th data-sort="category">Categoría <i class="fas fa-sort"></i></th><th data-sort="amount">Importe <i class="fas fa-sort"></i></th><th>Acciones</th></tr></thead>
+<tbody><tr class="empty-state"><td colspan="5">No hay transacciones. Carga archivos en la pestaña Dashboard.</td></tr></tbody>
+</table>
+</div>
+</div>
+<div id="categoryEditor" class="category-editor" style="display:none">
+<div class="editor-content">
+<h4>Categorizar Transacción</h4>
+<p class="editor-description" id="editorDescription"></p>
+<div class="editor-categories" id="editorCategories"></div>
+<div class="editor-actions">
+<button id="cancelEditBtn" class="btn btn-secondary btn-sm">Cancelar</button>
+</div>
+</div>
+</div>
+</section>
+</div>
+
+</div>
+</main>
+
+<footer class="footer">
+<div class="container">
+<p><i class="fas fa-shield-alt"></i> Tus datos se procesan localmente en tu navegador. No se envía nada a servidores externos.</p>
+</div>
+</footer>
+
+<script>
+// AQUÍ IRÁ TODO EL CÓDIGO JAVASCRIPT INLINE
+// Este archivo será completado con el código de categories.js, parser.js, charts.js, rules.js y app.js
+console.log('Cargando aplicación de finanzas...');
+</script>
+
+</body>
+</html>

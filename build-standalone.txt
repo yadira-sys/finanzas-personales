@@ -1,0 +1,2 @@
+Este archivo indica que se está construyendo el standalone.
+El index.html standalone tendrá TODO el código inline para funcionar al publicar.

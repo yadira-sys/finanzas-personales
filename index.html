@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analizador de Finanzas Personales</title>
+    
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    
+    <!-- SheetJS para Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <!-- Notificaciones -->
+    <div id="notifications" class="notifications-container"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Finanzas Personales</span>
+                </div>
+                <div class="header-actions">
+                    <button id="clearDataBtn" class="btn btn-danger btn-sm">
+                        <i class="fas fa-trash"></i>
+                        <span class="btn-text">Borrar Datos</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Tabs -->
+    <nav class="tabs-navigation">
+        <div class="container">
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="tab-btn" data-tab="ingresos">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>Ingresos</span>
+                </button>
+                <button class="tab-btn" data-tab="gastos">
+                    <i class="fas fa-arrow-down"></i>
+                    <span>Gastos</span>
+                </button>
+                <button class="tab-btn" data-tab="balance">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Balance Mensual</span>
+                </button>
+                <button class="tab-btn" data-tab="reglas">
+                    <i class="fas fa-cogs"></i>
+                    <span>Reglas</span>
+                </button>
+                <button class="tab-btn" data-tab="transacciones">
+                    <i class="fas fa-list"></i>
+                    <span>Transacciones</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            
+            <!-- TAB: Dashboard -->
+            <div id="tab-dashboard" class="tab-content active">
+                <!-- Upload Area -->
+                <section class="upload-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-upload"></i> Cargar Movimientos Bancarios</h2>
+                        <p>Arrastra archivos CSV o Excel de tus bancos</p>
+                    </div>
+                    <div id="uploadArea" class="upload-area">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Arrastra archivos aquí</h3>
+                        <p>o</p>
+                        <button id="selectFileBtn" class="btn btn-primary">
+                            <i class="fas fa-folder-open"></i> Seleccionar Archivos
+                        </button>
+                        <input type="file" id="fileInput" accept=".csv,.xlsx,.xls" multiple hidden>
+                        <p class="upload-hint">Acepta CSV, Excel (.xlsx, .xls) • Múltiples bancos</p>
+                    </div>
+                </section>
+
+                <!-- Summary Cards -->
+                <section class="summary-section">
+                    <div class="summary-cards">
+                        <div class="summary-card balance">
+                            <div class="card-icon">
+                                <i class="fas fa-wallet"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Balance Total</p>
+                                <p class="card-value" id="totalBalance">€0.00</p>
+                            </div>
+                        </div>
+                        <div class="summary-card income">
+                            <div class="card-icon">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Ingresos Totales</p>
+                                <p class="card-value" id="totalIncome">€0.00</p>
+                            </div>
+                        </div>
+                        <div class="summary-card expense">
+                            <div class="card-icon">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Gastos Totales</p>
+                                <p class="card-value" id="totalExpense">€0.00</p>
+                            </div>
+                        </div>
+                        <div class="summary-card transactions">
+                            <div class="card-icon">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Transacciones</p>
+                                <p class="card-value" id="totalTransactions">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="charts-section">
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-bar"></i> Ingresos vs Gastos Mensuales</h3>
+                            <div class="chart-container" style="height: 350px;">
+                                <canvas id="monthlyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-pie"></i> Gastos por Categoría</h3>
+                            <div class="chart-container" style="height: 350px;">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-line"></i> Tendencia de Balance</h3>
+                            <div class="chart-container" style="height: 350px;">
+                                <canvas id="balanceChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-bar"></i> Top 10 Categorías</h3>
+                            <div class="chart-container" style="height: 350px;">
+                                <canvas id="topCategoriesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB: Ingresos -->
+            <div id="tab-ingresos" class="tab-content">
+                <section class="income-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-arrow-up"></i> Análisis de Ingresos</h2>
+                        <p>Tus fuentes de ingreso agrupadas y analizadas</p>
+                    </div>
+
+                    <!-- Income Summary -->
+                    <div class="income-summary">
+                        <div class="summary-card income">
+                            <div class="card-icon">
+                                <i class="fas fa-euro-sign"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Ingresos Totales</p>
+                                <p class="card-value" id="incomeTotal">€0.00</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">
+                                <i class="fas fa-stream"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Fuentes de Ingreso</p>
+                                <p class="card-value" id="incomeSources">0</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Ingreso Promedio Mensual</p>
+                                <p class="card-value" id="incomeAverage">€0.00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Income Charts -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-pie"></i> Ingresos por Fuente</h3>
+                            <div class="chart-container" style="height: 400px;">
+                                <canvas id="incomeSourcesChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-line"></i> Evolución de Ingresos Mensuales</h3>
+                            <div class="chart-container" style="height: 400px;">
+                                <canvas id="incomeEvolutionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Income by Source Table -->
+                    <div class="table-card">
+                        <h3><i class="fas fa-table"></i> Detalle por Fuente de Ingreso</h3>
+                        <div class="table-responsive">
+                            <table class="data-table" id="incomeSourcesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Fuente</th>
+                                        <th>Total</th>
+                                        <th>Transacciones</th>
+                                        <th>Promedio</th>
+                                        <th>Última Fecha</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="empty-state">
+                                        <td colspan="5">No hay datos de ingresos</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- All Income Transactions -->
+                    <div class="table-card">
+                        <h3><i class="fas fa-list"></i> Todas las Transacciones de Ingresos</h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+                            Haz clic en cualquier categoría para recategorizarla
+                        </p>
+                        <div class="table-responsive">
+                            <table class="data-table" id="allIncomeTransactionsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Descripción</th>
+                                        <th>Categoría</th>
+                                        <th>Importe</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="empty-state">
+                                        <td colspan="5">No hay transacciones de ingresos</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB: Gastos -->
+            <div id="tab-gastos" class="tab-content">
+                <section class="expenses-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-arrow-down"></i> Análisis de Gastos</h2>
+                        <p>Tus gastos categorizados y analizados</p>
+                    </div>
+
+                    <!-- Expenses Summary -->
+                    <div class="expenses-summary">
+                        <div class="summary-card expense">
+                            <div class="card-icon">
+                                <i class="fas fa-euro-sign"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Gastos Totales</p>
+                                <p class="card-value" id="expensesTotal">€0.00</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">
+                                <i class="fas fa-tags"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Categorías Activas</p>
+                                <p class="card-value" id="expensesCategories">0</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Gasto Promedio Mensual</p>
+                                <p class="card-value" id="expensesAverage">€0.00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expenses Charts -->
+                    <div class="charts-grid">
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-pie"></i> Gastos por Categoría</h3>
+                            <div class="chart-container" style="height: 400px;">
+                                <canvas id="expensesCategoryChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="chart-card">
+                            <h3><i class="fas fa-chart-line"></i> Evolución de Gastos Mensuales</h3>
+                            <div class="chart-container" style="height: 400px;">
+                                <canvas id="expensesEvolutionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Expenses by Category Table -->
+                    <div class="table-card">
+                        <h3><i class="fas fa-table"></i> Detalle por Categoría</h3>
+                        <div class="table-responsive">
+                            <table class="data-table" id="expensesCategoriesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Categoría</th>
+                                        <th>Total</th>
+                                        <th>Transacciones</th>
+                                        <th>Promedio</th>
+                                        <th>% del Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="empty-state">
+                                        <td colspan="5">No hay datos de gastos</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- All Expense Transactions -->
+                    <div class="table-card">
+                        <h3><i class="fas fa-list"></i> Todas las Transacciones de Gastos</h3>
+                        <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 16px;">
+                            Haz clic en cualquier categoría para recategorizarla
+                        </p>
+                        <div class="table-responsive">
+                            <table class="data-table" id="allExpenseTransactionsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Fecha</th>
+                                        <th>Descripción</th>
+                                        <th>Categoría</th>
+                                        <th>Importe</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="empty-state">
+                                        <td colspan="5">No hay transacciones de gastos</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB: Balance Mensual -->
+            <div id="tab-balance" class="tab-content">
+                <section class="balance-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-calendar-alt"></i> Balance Mensual</h2>
+                        <p>Análisis detallado mes a mes</p>
+                    </div>
+
+                    <!-- Month Selector -->
+                    <div class="month-selector-card">
+                        <div class="selector-controls">
+                            <button id="prevMonth" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <select id="monthSelect" class="form-select"></select>
+                            <select id="yearSelect" class="form-select"></select>
+                            <button id="nextMonth" class="btn btn-secondary btn-sm">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Selected Month Summary -->
+                    <div id="selectedMonthSummary" class="month-summary">
+                        <div class="summary-card income">
+                            <div class="card-icon">
+                                <i class="fas fa-arrow-up"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Ingresos del Mes</p>
+                                <p class="card-value" id="monthIncome">€0.00</p>
+                            </div>
+                        </div>
+                        <div class="summary-card expense">
+                            <div class="card-icon">
+                                <i class="fas fa-arrow-down"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Gastos del Mes</p>
+                                <p class="card-value" id="monthExpense">€0.00</p>
+                            </div>
+                        </div>
+                        <div class="summary-card balance">
+                            <div class="card-icon">
+                                <i class="fas fa-balance-scale"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Balance Neto</p>
+                                <p class="card-value" id="monthBalance">€0.00</p>
+                            </div>
+                        </div>
+                        <div class="summary-card transactions">
+                            <div class="card-icon">
+                                <i class="fas fa-exchange-alt"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Transacciones</p>
+                                <p class="card-value" id="monthTransactions">0</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Monthly Evolution Chart -->
+                    <div class="chart-card">
+                        <h3><i class="fas fa-chart-line"></i> Evolución Mensual</h3>
+                        <div class="chart-container" style="height: 400px;">
+                            <canvas id="monthlyEvolutionChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- All Months Summary Table -->
+                    <div class="table-card">
+                        <h3><i class="fas fa-table"></i> Resumen de Todos los Meses</h3>
+                        <div class="table-responsive">
+                            <table class="data-table" id="allMonthsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Mes</th>
+                                        <th>Ingresos</th>
+                                        <th>Gastos</th>
+                                        <th>Balance</th>
+                                        <th>Transacciones</th>
+                                        <th>Ahorro %</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="empty-state">
+                                        <td colspan="6">No hay datos mensuales</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB: Reglas -->
+            <div id="tab-reglas" class="tab-content">
+                <section class="rules-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-cogs"></i> Gestión de Reglas de Categorización</h2>
+                        <p>Las reglas automatizan la categorización de tus transacciones futuras</p>
+                    </div>
+
+                    <!-- Rules Summary -->
+                    <div class="rules-summary">
+                        <div class="summary-card">
+                            <div class="card-icon">
+                                <i class="fas fa-list"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Reglas Activas</p>
+                                <p class="card-value" id="activeRulesCount">0</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Aplicaciones Totales</p>
+                                <p class="card-value" id="rulesApplications">0</p>
+                            </div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="card-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="card-content">
+                                <p class="card-label">Última Actualización</p>
+                                <p class="card-value" id="lastRuleUpdate">-</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rules Actions -->
+                    <div class="rules-actions">
+                        <button id="applyRulesBtn" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Aplicar Reglas a Todas las Transacciones
+                        </button>
+                        <button id="clearRulesBtn" class="btn btn-danger">
+                            <i class="fas fa-trash"></i> Borrar Todas las Reglas
+                        </button>
+                    </div>
+
+                    <!-- Rules Table -->
+                    <div class="table-card">
+                        <h3><i class="fas fa-table"></i> Reglas Configuradas</h3>
+                        <div class="table-responsive">
+                            <table class="data-table" id="rulesTable">
+                                <thead>
+                                    <tr>
+                                        <th>Patrón de Búsqueda</th>
+                                        <th>Categoría</th>
+                                        <th>Creada</th>
+                                        <th>Aplicaciones</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="empty-state">
+                                        <td colspan="5">
+                                            No hay reglas configuradas. 
+                                            <br>
+                                            <small>Las reglas se crean automáticamente cuando categorizas transacciones en la pestaña de Transacciones.</small>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Rules Info -->
+                    <div class="info-card">
+                        <h4><i class="fas fa-info-circle"></i> Cómo funcionan las reglas</h4>
+                        <ul>
+                            <li><strong>Creación automática:</strong> Cuando categorizas manualmente una transacción en la pestaña "Transacciones", se crea automáticamente una regla para esa descripción.</li>
+                            <li><strong>Aplicación automática:</strong> Las reglas se aplican automáticamente cuando cargas nuevos archivos bancarios.</li>
+                            <li><strong>Patrones inteligentes:</strong> Las reglas buscan coincidencias en las descripciones de las transacciones.</li>
+                            <li><strong>Gestión flexible:</strong> Puedes ver, editar o eliminar reglas individuales desde esta pantalla.</li>
+                            <li><strong>Reaplicación:</strong> Usa el botón "Aplicar Reglas" para recategorizar todas tus transacciones existentes.</li>
+                        </ul>
+                    </div>
+                </section>
+            </div>
+
+            <!-- TAB: Transacciones -->
+            <div id="tab-transacciones" class="tab-content">
+                <section class="transactions-section">
+                    <div class="section-header">
+                        <h2><i class="fas fa-list"></i> Todas las Transacciones</h2>
+                        <p>Gestiona y categoriza tus transacciones</p>
+                    </div>
+
+                    <!-- Filters and Search -->
+                    <div class="filters-card">
+                        <div class="filters-row">
+                            <div class="search-box">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="searchInput" placeholder="Buscar por descripción, importe...">
+                            </div>
+                            <select id="categoryFilter" class="form-select">
+                                <option value="">Todas las categorías</option>
+                            </select>
+                            <select id="typeFilter" class="form-select">
+                                <option value="">Todos los tipos</option>
+                                <option value="income">Ingresos</option>
+                                <option value="expense">Gastos</option>
+                            </select>
+                            <button id="exportBtn" class="btn btn-secondary">
+                                <i class="fas fa-download"></i>
+                                <span class="btn-text">Exportar CSV</span>
+                            </button>
+                        </div>
+                        <div class="filter-info">
+                            <span id="filterInfo">Mostrando 0 transacciones</span>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Table -->
+                    <div class="table-card">
+                        <div class="table-responsive">
+                            <table class="data-table" id="transactionsTable">
+                                <thead>
+                                    <tr>
+                                        <th data-sort="date">
+                                            Fecha 
+                                            <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th data-sort="description">
+                                            Descripción 
+                                            <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th data-sort="category">
+                                            Categoría 
+                                            <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th data-sort="amount">
+                                            Importe 
+                                            <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="empty-state">
+                                        <td colspan="5">
+                                            No hay transacciones. Carga archivos en la pestaña Dashboard.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Inline Category Editor (Hidden by default) -->
+                    <div id="categoryEditor" class="category-editor" style="display: none;">
+                        <div class="editor-content">
+                            <h4>Categorizar Transacción</h4>
+                            <p class="editor-description" id="editorDescription"></p>
+                            <div class="editor-categories" id="editorCategories"></div>
+                            <div class="editor-actions">
+                                <button id="cancelEditBtn" class="btn btn-secondary btn-sm">Cancelar</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>
+                <i class="fas fa-shield-alt"></i> 
+                Tus datos se procesan localmente en tu navegador. 
+                No se envía nada a servidores externos.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="./js/categories.js"></script>
+    <script src="./js/parser.js"></script>
+    <script src="./js/charts.js"></script>
+    <script src="./js/rules.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+</html>
