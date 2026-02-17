@@ -327,3 +327,6 @@ class ProfileUI {
         this.updateHeaderProfile();
     }
 }
+
+// Exportar para uso global
+window.ProfileUI = ProfileUI;
