@@ -351,3 +351,6 @@ class ProfileManager {
         };
     }
 }
+
+// Exportar para uso global
+window.ProfileManager = ProfileManager;
