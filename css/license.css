@@ -1,0 +1,424 @@
+/**
+ * Estilos para el Sistema de Licencias
+ * Tu Dinero Claro - License Activation Screen
+ */
+
+/* ===================================
+   PANTALLA DE LICENCIA
+   =================================== */
+
+.license-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    overflow-y: auto;
+}
+
+.license-container {
+    width: 100%;
+    max-width: 480px;
+    padding: 20px;
+    animation: fadeInUp 0.6s ease;
+}
+
+/* Header de Licencia */
+.license-header {
+    text-align: center;
+    color: white;
+    margin-bottom: 30px;
+}
+
+.license-logo {
+    width: 80px;
+    height: 80px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.license-logo i {
+    font-size: 40px;
+    color: white;
+}
+
+.license-header h1 {
+    font-size: 32px;
+    font-weight: 700;
+    margin: 0 0 8px 0;
+    color: white;
+}
+
+.license-subtitle {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    margin: 0;
+}
+
+/* Card Principal */
+.license-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px 32px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* Formulario de Activación */
+.activation-form {
+    margin-bottom: 30px;
+}
+
+.form-group {
+    margin-bottom: 24px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.form-group label i {
+    margin-right: 6px;
+    color: #667eea;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 16px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group input::placeholder {
+    color: #a0aec0;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #718096;
+}
+
+/* Botón de Activación */
+.btn-activate {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+.btn-activate:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-activate:active {
+    transform: translateY(0);
+}
+
+.btn-activate:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-activate i {
+    margin-right: 8px;
+}
+
+/* Error de Activación */
+.activation-error {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    background: #fed7d7;
+    border: 1px solid #fc8181;
+    border-radius: 10px;
+    color: #c53030;
+    margin-top: 16px;
+    animation: shake 0.5s ease;
+}
+
+.activation-error i {
+    font-size: 20px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.error-message {
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* Información de Licencia */
+.license-info {
+    padding: 20px;
+    background: #f7fafc;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.license-info h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: #2d3748;
+    margin: 0 0 12px 0;
+}
+
+.license-info h3 i {
+    color: #667eea;
+    margin-right: 6px;
+}
+
+.license-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.license-info li {
+    padding: 8px 0;
+    color: #4a5568;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.license-info li::before {
+    content: "•";
+    color: #667eea;
+    font-weight: bold;
+    display: inline-block;
+    width: 1em;
+    margin-left: -1em;
+    margin-right: 8px;
+}
+
+/* Footer de Licencia */
+.license-footer {
+    text-align: center;
+    padding-top: 16px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.license-footer p {
+    margin: 0;
+    font-size: 13px;
+    color: #718096;
+}
+
+.license-footer i {
+    color: #48bb78;
+    margin-right: 6px;
+}
+
+/* ===================================
+   ANIMACIÓN DE ÉXITO
+   =================================== */
+
+.success-animation {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.success-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    animation: scaleIn 0.5s ease;
+}
+
+.success-icon i {
+    font-size: 50px;
+    color: white;
+}
+
+.success-animation h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 8px 0;
+}
+
+.success-animation p {
+    font-size: 16px;
+    color: #718096;
+    margin: 0 0 30px 0;
+}
+
+.success-loader {
+    width: 100%;
+    height: 4px;
+    background: #e2e8f0;
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.loader-bar {
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 2px;
+    animation: loadProgress 2s ease;
+}
+
+/* ===================================
+   CARD DE INFORMACIÓN DE LICENCIA
+   (para página de configuración)
+   =================================== */
+
+.license-info-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f7fafc;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #4a5568;
+    font-size: 14px;
+}
+
+.info-label i {
+    color: #667eea;
+    margin-right: 8px;
+    width: 20px;
+}
+
+.info-value {
+    color: #2d3748;
+    font-size: 14px;
+    font-family: 'Monaco', 'Courier New', monospace;
+}
+
+/* ===================================
+   ANIMACIONES
+   =================================== */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.5);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes loadProgress {
+    from {
+        width: 0;
+    }
+    to {
+        width: 100%;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.7);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(124, 58, 237, 0);
+    }
+}
+
+/* Efecto para licencia pre-rellenada */
+input.pre-filled {
+    animation: pulse 1s ease-in-out;
+    border-color: #7c3aed !important;
+    background: #f3f0ff !important;
+}
+
+/* ===================================
+   RESPONSIVE
+   =================================== */
+
+@media (max-width: 600px) {
+    .license-container {
+        padding: 16px;
+    }
+
+    .license-card {
+        padding: 28px 20px;
+    }
+
+    .license-header h1 {
+        font-size: 26px;
+    }
+
+    .license-logo {
+        width: 70px;
+        height: 70px;
+    }
+
+    .license-logo i {
+        font-size: 35px;
+    }
+}
