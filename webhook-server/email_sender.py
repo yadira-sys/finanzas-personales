@@ -31,7 +31,7 @@ class EmailSender:
             payload = {
                 'from': f'{self.sender_name} <{self.sender_email}>',
                 'to': [to_email],
-                'subject': 'Tu licencia de Tu Dinero Claro',
+                'subject': '🎉 Tu licencia de Tu Dinero Claro está lista',
                 'html': html_body,
                 'text': text_body
             }
@@ -59,27 +59,105 @@ class EmailSender:
     def _create_email_body(self, buyer_name, license_key):
         return f"""
 <!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; padding: 20px;">
-    <h1>Bienvenido a Tu Dinero Claro</h1>
-    <p>Hola {buyer_name},</p>
-    <p>Tu licencia personal:</p>
-    <h2 style="background: #7c3aed; color: white; padding: 20px; border-radius: 8px; text-align: center;">{license_key}</h2>
-    <p>Accede a la aplicación: <a href="{self.app_url}">{self.app_url}</a></p>
-    <p>Gracias por tu compra!</p>
-</body>
-</html>
-"""
-    
-    def _create_text_body(self, buyer_name, license_key):
-        return f"""
-Bienvenido a Tu Dinero Claro
-
-Hola {buyer_name},
-
-Tu licencia personal: {license_key}
-
-Accede a: {self.app_url}
-
-Gracias por tu compra!
-"""
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }}
+        .container {{
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }}
+        .header {{
+            text-align: center;
+            margin-bottom: 30px;
+        }}
+        .header h1 {{
+            color: #7c3aed;
+            margin: 0;
+            font-size: 28px;
+        }}
+        .license-box {{
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 30px 0;
+        }}
+        .license-key {{
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            background: rgba(255,255,255,0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }}
+        .button {{
+            display: inline-block;
+            background: #7c3aed;
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 20px 0;
+        }}
+        .instructions {{
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }}
+        .instructions ol {{
+            margin: 10px 0;
+            padding-left: 20px;
+        }}
+        .instructions li {{
+            margin: 10px 0;
+        }}
+        .footer {{
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 ¡Bienvenido/a a Tu Dinero Claro!</h1>
+            <p>Hola <strong>{buyer_name}</strong>,</p>
+            <p>Tu compra se ha procesado exitosamente. ¡Gracias por confiar en nosotros!</p>
+        </div>
+        
+        <div class="license-box">
+            <p style="margin: 0; font-size: 16px;">🔑 TU LICENCIA PERSONAL</p>
+            <div class="license-key">{license_key}</div>
+            <p style="margin: 0; font-size: 14px;">Guarda esta clave en un lugar seguro</p>
+        </div>
+        
+        <div style="text-align: center;">
+            <a href="{self.app_url}" class="button">🚀 Acceder a la Aplicación</a>
+        </div>
+        
+        <div class="instructions">
+            <h3 style="margin-top: 0;">📋 Cómo usar tu licencia:</h3>
+            <ol>
+                <li>Abre <strong><a href=<span class="cursor">█</span>
