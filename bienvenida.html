@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenido a Tu Dinero Claro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .welcome-container {
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 700px;
+            width: 100%;
+            overflow: hidden;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .welcome-header {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            padding: 40px 30px;
+            text-align: center;
+            color: #ffffff;
+        }
+
+        .welcome-header h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .welcome-header p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+
+        .welcome-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .welcome-body {
+            padding: 40px 30px;
+        }
+
+        .license-section {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+        }
+
+        .license-label {
+            color: #ffffff;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .license-key {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            backdrop-filter: blur(10px);
+        }
+
+        .license-text {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            letter-spacing: 3px;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            flex: 1;
+        }
+
+        .copy-btn {
+            background: rgba(255, 255, 255, 0.95);
+            color: #7c3aed;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .copy-btn:hover {
+            background: #ffffff;
+            transform: scale(1.05);
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .instructions {
+            margin-bottom: 30px;
+        }
+
+        .instructions h2 {
+            color: #1f2937;
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border-left: 4px solid #7c3aed;
+        }
+
+        .step-number {
+            background: #7c3aed;
+            color: #ffffff;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-text {
+            color: #4b5563;
+            font-size: 15px;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .cta-btn {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 16px 40px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(124, 58, 237, 0.3);
+            transition: all 0.3s ease;
+            display: inline-block;
+            text-decoration: none;
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, 0.4);
+        }
+
+        .features {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f0fdf4;
+            border-radius: 8px;
+            border: 1px solid #86efac;
+        }
+
+        .features h3 {
+            color: #166534;
+            font-size: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .feature-item {
+            color: #166534;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .feature-icon {
+            color: #10b981;
+        }
+
+        @media (max-width: 640px) {
+            .welcome-header h1 {
+                font-size: 24px;
+            }
+
+            .license-text {
+                font-size: 20px;
+                letter-spacing: 2px;
+            }
+
+            .license-key {
+                flex-direction: column;
+            }
+
+            .copy-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .feature-list {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="welcome-container">
+        <!-- Header -->
+        <div class="welcome-header">
+            <div class="welcome-icon">🎉</div>
+            <h1>¡Bienvenido a Tu Dinero Claro!</h1>
+            <p>Tu aplicación está lista para usar</p>
+        </div>
+
+        <!-- Body -->
+        <div class="welcome-body">
+            <!-- Licencia -->
+            <div class="license-section">
+                <div class="license-label">Tu Clave de Licencia</div>
+                <div class="license-key">
+                    <div class="license-text" id="licenseKey">Cargando...</div>
+                    <button class="copy-btn" id="copyBtn">
+                        <span id="copyIcon">📋</span>
+                        <span id="copyText">Copiar</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Instrucciones -->
+            <div class="instructions">
+                <h2>📝 Cómo activar tu licencia</h2>
+                
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-text">
+                        <strong>Copia tu clave de licencia</strong> haciendo clic en el botón "Copiar" de arriba
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-text">
+                        <strong>Haz clic en el botón</strong> "Ir a la Aplicación" abajo
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-text">
+                        <strong>Pega tu licencia</strong> en el campo que aparecerá (Ctrl+V o Cmd+V)
+                    </div>
+                </div>
+
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <div class="step-text">
+                        <strong>Haz clic en "Activar"</strong> y ¡listo! Ya puedes usar Tu Dinero Claro
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="features">
+                <h3>✨ Lo que puedes hacer con Tu Dinero Claro</h3>
+                <div class="feature-list">
+                    <div class="feature-item">
+                        <span class="feature-icon">💰</span>
+                        Registrar ingresos y gastos
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📊</span>
+                        Visualizar estadísticas
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">📁</span>
+                        Exportar datos a CSV
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🔒</span>
+                        Acceso sin conexión
+                    </div>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-section">
+                <a href="index.html" class="cta-btn">
+                    🚀 Ir a la Aplicación
+                </a>
+                <p style="margin-top: 15px; color: #6b7280; font-size: 14px;">
+                    ¿Problemas? Responde al email de tu licencia
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Extraer la licencia de la URL (si viene como parámetro)
+        const urlParams = new URLSearchParams(window.location.search);
+        const licenseFromUrl = urlParams.get('license');
+        
+        // Mostrar la licencia
+        const licenseKeyElement = document.getElementById('licenseKey');
+        
+        if (licenseFromUrl) {
+            licenseKeyElement.textContent = licenseFromUrl;
+            // Guardar en sessionStorage para usarla después
+            sessionStorage.setItem('pendingLicense', licenseFromUrl);
+        } else {
+            // Intentar recuperar de sessionStorage
+            const savedLicense = sessionStorage.getItem('pendingLicense');
+            if (savedLicense) {
+                licenseKeyElement.textContent = savedLicense;
+            } else {
+                licenseKeyElement.textContent = 'TDC-2025-XXXXX';
+                licenseKeyElement.style.opacity = '0.5';
+            }
+        }
+
+        // Copiar al portapapeles
+        document.getElementById('copyBtn').addEventListener('click', function() {
+            const license = licenseKeyElement.textContent;
+            
+            navigator.clipboard.writeText(license).then(() => {
+                // Cambiar el botón a "Copiado"
+                const btn = this;
+                const icon = document.getElementById('copyIcon');
+                const text = document.getElementById('copyText');
+                
+                btn.classList.add('copied');
+                icon.textContent = '✓';
+                text.textContent = 'Copiado';
+                
+                // Volver al estado original después de 2 segundos
+                setTimeout(() => {
+                    btn.classList.remove('copied');
+                    icon.textContent = '📋';
+                    text.textContent = 'Copiar';
+                }, 2000);
+            }).catch(err => {
+                console.error('Error al copiar:', err);
+                alert('No se pudo copiar. Por favor, selecciona y copia manualmente.');
+            });
+        });
+
+        // Auto-copiar la licencia al cargar la página (opcional)
+        if (licenseFromUrl && navigator.clipboard) {
+            // Esperar un poco antes de copiar automáticamente
+            setTimeout(() => {
+                navigator.clipboard.writeText(licenseFromUrl).then(() => {
+                    console.log('Licencia copiada automáticamente');
+                });
+            }, 500);
+        }
+    </script>
+</body>
+</html>
