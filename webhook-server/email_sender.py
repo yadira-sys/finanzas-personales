@@ -65,15 +65,16 @@ class EmailSender:
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
-    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+<body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f5f5f5;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f5f5f5; padding: 20px;">
         <tr>
             <td align="center">
-                <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color: #ffffff; max-width: 600px;">
+                    
                     <!-- Header -->
                     <tr>
-                        <td style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 40px 30px; border-radius: 12px 12px 0 0; text-align: center;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700;">
+                        <td bgcolor="#7c3aed" style="padding: 40px 30px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px;">
                                 🎉 ¡Bienvenido a Tu Dinero Claro!
                             </h1>
                         </td>
@@ -81,11 +82,11 @@ class EmailSender:
                     
                     <!-- Saludo personalizado -->
                     <tr>
-                        <td style="padding: 30px 30px 20px;">
-                            <p style="margin: 0 0 20px; color: #1f2937; font-size: 18px; line-height: 1.6;">
+                        <td style="padding: 30px;">
+                            <p style="margin: 0 0 20px; color: #333333; font-size: 18px;">
                                 Hola <strong>{buyer_name}</strong>,
                             </p>
-                            <p style="margin: 0 0 20px; color: #4b5563; font-size: 16px; line-height: 1.6;">
+                            <p style="margin: 0 0 20px; color: #666666; font-size: 16px;">
                                 ¡Gracias por tu compra! Tu aplicación está lista para usar. Aquí está tu licencia personal:
                             </p>
                         </td>
@@ -94,24 +95,28 @@ class EmailSender:
                     <!-- Licencia -->
                     <tr>
                         <td style="padding: 0 30px 30px;">
-                            <div style="background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); padding: 30px; border-radius: 8px; text-align: center;">
-                                <p style="margin: 0 0 10px; color: #ffffff; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
-                                    Tu Clave de Licencia
-                                </p>
-                                <p style="margin: 0; color: #ffffff; font-size: 32px; font-weight: 700; letter-spacing: 2px; word-break: break-all;">
-                                    {license_key}
-                                </p>
-                            </div>
+                            <table width="100%" cellpadding="20" cellspacing="0" border="0" bgcolor="#7c3aed" style="border-radius: 8px;">
+                                <tr>
+                                    <td align="center" style="background-color: #7c3aed;">
+                                        <p style="margin: 0 0 10px; color: #ffffff !important; font-size: 12px; text-transform: uppercase; letter-spacing: 1px;">
+                                            Tu Clave de Licencia
+                                        </p>
+                                        <p style="margin: 0; color: #ffffff !important; background-color: #7c3aed; font-size: 28px; font-weight: bold; letter-spacing: 3px; word-break: break-all;">
+                                            {license_key}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     
                     <!-- Instrucciones -->
                     <tr>
                         <td style="padding: 0 30px 30px;">
-                            <h2 style="margin: 0 0 15px; color: #1f2937; font-size: 20px;">
+                            <h2 style="margin: 0 0 15px; color: #333333; font-size: 20px;">
                                 📝 Cómo activar tu licencia:
                             </h2>
-                            <ol style="margin: 0; padding-left: 20px; color: #4b5563; font-size: 16px; line-height: 1.8;">
+                            <ol style="margin: 0; padding-left: 20px; color: #666666; font-size: 16px; line-height: 1.8;">
                                 <li>Accede a la aplicación usando el botón de abajo</li>
                                 <li>Introduce tu clave de licencia en el campo correspondiente</li>
                                 <li>Haz clic en "Activar Licencia"</li>
@@ -123,36 +128,46 @@ class EmailSender:
                     <!-- Botón CTA -->
                     <tr>
                         <td style="padding: 0 30px 40px; text-align: center;">
-                            <a href="{self.app_url}" style="display: inline-block; background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 18px; font-weight: 600; box-shadow: 0 4px 6px rgba(124, 58, 237, 0.3);">
-                                🚀 Acceder a Tu Dinero Claro
-                            </a>
+                            <table cellpadding="0" cellspacing="0" border="0" align="center">
+                                <tr>
+                                    <td bgcolor="#7c3aed" style="border-radius: 8px; padding: 16px 40px;">
+                                        <a href="{self.app_url}" style="color: #ffffff; text-decoration: none; font-size: 18px; font-weight: bold; display: block;">
+                                            🚀 Acceder a Tu Dinero Claro
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     
                     <!-- Características -->
                     <tr>
                         <td style="padding: 0 30px 30px;">
-                            <div style="background-color: #f9fafb; padding: 20px; border-radius: 8px; border-left: 4px solid #7c3aed;">
-                                <p style="margin: 0 0 10px; color: #1f2937; font-size: 16px; font-weight: 600;">
-                                    ✨ Lo que puedes hacer:
-                                </p>
-                                <ul style="margin: 0; padding-left: 20px; color: #4b5563; font-size: 15px; line-height: 1.8;">
-                                    <li>Registrar ingresos y gastos</li>
-                                    <li>Visualizar estadísticas en tiempo real</li>
-                                    <li>Exportar tus datos a CSV</li>
-                                    <li>Acceso sin conexión a internet</li>
-                                </ul>
-                            </div>
+                            <table width="100%" cellpadding="20" cellspacing="0" border="0" bgcolor="#f9fafb" style="border-left: 4px solid #7c3aed;">
+                                <tr>
+                                    <td>
+                                        <p style="margin: 0 0 10px; color: #333333; font-size: 16px; font-weight: bold;">
+                                            ✨ Lo que puedes hacer:
+                                        </p>
+                                        <ul style="margin: 0; padding-left: 20px; color: #666666; font-size: 15px; line-height: 1.8;">
+                                            <li>Registrar ingresos y gastos</li>
+                                            <li>Visualizar estadísticas en tiempo real</li>
+                                            <li>Exportar tus datos a CSV</li>
+                                            <li>Acceso sin conexión a internet</li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                     
                     <!-- Footer -->
                     <tr>
-                        <td style="padding: 30px; background-color: #f9fafb; border-radius: 0 0 12px 12px; text-align: center; border-top: 1px solid #e5e7eb;">
-                            <p style="margin: 0 0 10px; color: #6b7280; font-size: 14px;">
+                        <td bgcolor="#f9fafb" style="padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+                            <p style="margin: 0 0 10px; color: #666666; font-size: 14px;">
                                 ¿Necesitas ayuda? Responde a este email
                             </p>
-                            <p style="margin: 0; color: #9ca3af; font-size: 12px;">
+                            <p style="margin: 0; color: #999999; font-size: 12px;">
                                 © {current_year} {self.sender_name}. Todos los derechos reservados.
                             </p>
                         </td>
