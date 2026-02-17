@@ -11,16 +11,10 @@ class ProfileManager {
         this.init();
     }
 
-    /**
-     * Inicializa el sistema de perfiles
-     */
     init() {
         this.loadCurrentProfile();
     }
 
-    /**
-     * Obtiene todos los perfiles almacenados
-     */
     getAllProfiles() {
         try {
             const profiles = localStorage.getItem(this.storageKey);
@@ -31,9 +25,6 @@ class ProfileManager {
         }
     }
 
-    /**
-     * Guarda la lista de perfiles
-     */
     saveProfiles(profiles) {
         try {
             localStorage.setItem(this.storageKey, JSON.stringify(profiles));
@@ -44,11 +35,7 @@ class ProfileManager {
         }
     }
 
-    /**
-     * Crea un nuevo perfil
-     */
     createProfile(name, pin, recoveryWord = '') {
-        // Validaciones
         if (!name || name.trim().length === 0) {
             throw new Error('El nombre del perfil no puede estar vacío');
         }
@@ -59,18 +46,15 @@ class ProfileManager {
 
         const profiles = this.getAllProfiles();
 
-        // LÍMITE DE PERFILES (Anti-piratería)
         const MAX_PROFILES = 3;
         if (profiles.length >= MAX_PROFILES) {
             throw new Error(`Límite alcanzado: Solo puedes crear ${MAX_PROFILES} perfiles por instalación. Esta limitación previene el uso compartido no autorizado.`);
         }
 
-        // Verificar si ya existe un perfil con ese nombre
         if (profiles.some(p => p.name.toLowerCase() === name.toLowerCase())) {
             throw new Error('Ya existe un perfil con ese nombre');
         }
 
-        // Crear nuevo perfil
         const profile = {
             id: this.generateProfileId(),
             name: name.trim(),
@@ -86,9 +70,6 @@ class ProfileManager {
         return profile;
     }
 
-    /**
-     * Verifica el PIN de un perfil
-     */
     verifyPin(profileId, pin) {
         const profiles = this.getAllProfiles();
         const profile = profiles.find(p => p.id === profileId);
@@ -100,9 +81,6 @@ class ProfileManager {
         return profile.pin === this.hashPin(pin);
     }
 
-    /**
-     * Inicia sesión en un perfil
-     */
     loginProfile(profileId, pin) {
         if (!this.verifyPin(profileId, pin)) {
             throw new Error('PIN incorrecto');
@@ -115,28 +93,20 @@ class ProfileManager {
             throw new Error('Perfil no encontrado');
         }
 
-        // Actualizar último acceso
         profile.lastAccess = new Date().toISOString();
         this.saveProfiles(profiles);
 
-        // Establecer perfil actual
         this.currentProfile = profile;
         localStorage.setItem(this.currentProfileKey, profile.id);
 
         return profile;
     }
 
-    /**
-     * Cierra sesión del perfil actual
-     */
     logoutProfile() {
         this.currentProfile = null;
         localStorage.removeItem(this.currentProfileKey);
     }
 
-    /**
-     * Carga el perfil actual desde localStorage
-     */
     loadCurrentProfile() {
         const profileId = localStorage.getItem(this.currentProfileKey);
         
@@ -147,29 +117,19 @@ class ProfileManager {
             if (profile) {
                 this.currentProfile = profile;
             } else {
-                // Perfil no encontrado, limpiar
                 localStorage.removeItem(this.currentProfileKey);
             }
         }
     }
 
-    /**
-     * Obtiene el perfil actual
-     */
     getCurrentProfile() {
         return this.currentProfile;
     }
 
-    /**
-     * Verifica si hay un perfil activo
-     */
     isLoggedIn() {
         return this.currentProfile !== null;
     }
 
-    /**
-     * Elimina un perfil
-     */
     deleteProfile(profileId, pin) {
         if (!this.verifyPin(profileId, pin)) {
             throw new Error('PIN incorrecto');
@@ -180,20 +140,15 @@ class ProfileManager {
         
         this.saveProfiles(filteredProfiles);
 
-        // Si es el perfil actual, cerrar sesión
         if (this.currentProfile && this.currentProfile.id === profileId) {
             this.logoutProfile();
         }
 
-        // Eliminar datos del perfil
         this.deleteProfileData(profileId);
 
         return true;
     }
 
-    /**
-     * Cambia el PIN de un perfil
-     */
     changePin(profileId, oldPin, newPin) {
         if (!this.verifyPin(profileId, oldPin)) {
             throw new Error('PIN actual incorrecto');
@@ -216,9 +171,6 @@ class ProfileManager {
         return true;
     }
 
-    /**
-     * Recuperar acceso con palabra secreta
-     */
     recoverWithSecretWord(profileId, recoveryWord) {
         const profiles = this.getAllProfiles();
         const profile = profiles.find(p => p.id === profileId);
@@ -237,45 +189,30 @@ class ProfileManager {
             throw new Error('Palabra de recuperación incorrecta');
         }
 
-        // Retornar true si la palabra es correcta
-        // El usuario podrá crear un nuevo PIN
         return true;
     }
 
-    /**
-     * Genera un ID único para el perfil
-     */
     generateProfileId() {
         return 'profile_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
 
-    /**
-     * Hash simple para el PIN (en producción usar bcrypt o similar)
-     */
     hashPin(pin) {
-        // Hash simple usando btoa (en producción, usar una librería de hashing segura)
         let hash = 0;
-        const str = pin + 'salt_finance_app'; // Agregar salt
+        const str = pin + 'salt_finance_app';
         
         for (let i = 0; i < str.length; i++) {
             const char = str.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // Convert to 32bit integer
+            hash = hash & hash;
         }
         
         return hash.toString(36);
     }
 
-    /**
-     * Obtiene la clave de almacenamiento para los datos del perfil
-     */
     getProfileDataKey(profileId) {
         return `profile_data_${profileId}`;
     }
 
-    /**
-     * Guarda datos del perfil actual
-     */
     saveProfileData(data) {
         if (!this.currentProfile) {
             throw new Error('No hay perfil activo');
@@ -292,9 +229,6 @@ class ProfileManager {
         }
     }
 
-    /**
-     * Carga datos del perfil actual
-     */
     loadProfileData() {
         if (!this.currentProfile) {
             return null;
@@ -311,17 +245,11 @@ class ProfileManager {
         }
     }
 
-    /**
-     * Elimina todos los datos de un perfil
-     */
     deleteProfileData(profileId) {
         const key = this.getProfileDataKey(profileId);
         localStorage.removeItem(key);
     }
 
-    /**
-     * Obtiene estadísticas del perfil
-     */
     getProfileStats(profileId) {
         const profiles = this.getAllProfiles();
         const profile = profiles.find(p => p.id === profileId);
@@ -339,7 +267,6 @@ class ProfileManager {
                 const parsed = JSON.parse(data);
                 transactionCount = parsed.transactions ? parsed.transactions.length : 0;
             } catch (e) {
-                // Ignorar error
             }
         }
 
@@ -352,5 +279,4 @@ class ProfileManager {
     }
 }
 
-// Exportar para uso global
 window.ProfileManager = ProfileManager;
