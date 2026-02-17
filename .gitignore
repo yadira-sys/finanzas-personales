@@ -1,0 +1,65 @@
+     1	# Node modules
+     2	node_modules/
+     3	
+     4	# Archivos del sistema
+     5	.DS_Store
+     6	Thumbs.db
+     7	*.log
+     8	
+     9	# ============================================
+    10	# ARCHIVOS PRIVADOS - NO SUBIR A GITHUB
+    11	# ============================================
+    12	
+    13	# Generador de licencias (SOLO PARA TI)
+    14	GENERADOR-LICENCIAS.html
+    15	
+    16	# Documentación interna de desarrollo
+    17	PLAN-LANZAMIENTO-COMPLETO.md
+    18	LISTA-ARCHIVOS-EMPAQUETAR.md
+    19	LISTA-SCREENSHOTS.md
+    20	RESUMEN-PARA-LANZAMIENTO.md
+    21	EMPIEZA-AQUI.md
+    22	LEEME-INSTALACION.md
+    23	LICENCIA.txt
+    24	GUIA-USO.md
+    25	CARACTERISTICAS.md
+    26	RESUMEN-PROYECTO.md
+    27	SOLUCION-PROBLEMAS.md
+    28	COMO-PUBLICAR.md
+    29	SOLUCION-NETLIFY.md
+    30	README-TU-DINERO-CLARO.md
+    31	CAMBIOS-IMPLEMENTADOS.md
+    32	CHANGELOG-v1.0-FINAL.md
+    33	INSTRUCCIONES-TESTING.md
+    34	RESUMEN-IMPLEMENTACION-FINAL.md
+    35	RESUMEN-EJECUTIVO.md
+    36	ACTUALIZACIONES-FINALES-v1.0.md
+    37	RESUMEN-CAMBIOS-RAPIDO.md
+    38	RESUMEN-CONVERSION-WEB.md
+    39	
+    40	# Archivos standalone (no necesarios para web)
+    41	index-standalone.html
+    42	index-complete.html
+    43	build-standalone.txt
+    44	
+    45	# Guía antigua de Gumroad (reemplazada por v2)
+    46	GUIA-CONFIGURACION-GUMROAD.md
+    47	
+    48	# Archivos de licencias generadas (sensibles)
+    49	webhook-server/licenses_issued.json
+    50	webhook-server/*.log
+    51	
+    52	# Archivos temporales
+    53	*.tmp
+    54	*.swp
+    55	*~
+    56	
+    57	# IDEs
+    58	.vscode/
+    59	.idea/
+    60	*.sublime-*
+    61	
+    62	# Backups
+    63	*.bak
+    64	*.backup
+    65	
