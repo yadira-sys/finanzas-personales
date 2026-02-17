@@ -131,8 +131,8 @@ class EmailSender:
                             <table cellpadding="0" cellspacing="0" border="0" align="center">
                                 <tr>
                                     <td bgcolor="#7c3aed" style="border-radius: 8px; padding: 16px 40px;">
-                                        <a href="{self.app_url}" style="color: #ffffff; text-decoration: none; font-size: 18px; font-weight: bold; display: block;">
-                                            🚀 Acceder a Tu Dinero Claro
+                                        <a href="{self.app_url}/bienvenida.html?license={license_key}" style="color: #ffffff; text-decoration: none; font-size: 18px; font-weight: bold; display: block;">
+                                            🚀 Activar Mi Licencia
                                         </a>
                                     </td>
                                 </tr>
@@ -193,10 +193,10 @@ Tu Clave de Licencia:
 {license_key}
 
 📝 Cómo activar tu licencia:
-1. Accede a: {self.app_url}
-2. Introduce tu clave de licencia
-3. Haz clic en "Activar Licencia"
-4. ¡Empieza a gestionar tus finanzas!
+1. Accede a: {self.app_url}/bienvenida.html?license={license_key}
+2. Copia tu licencia
+3. Haz clic en "Ir a la Aplicación"
+4. Pega tu licencia y activa
 
 ✨ Lo que puedes hacer:
 • Registrar ingresos y gastos
