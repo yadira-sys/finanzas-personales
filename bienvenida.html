@@ -315,7 +315,7 @@
                 <div class="step">
                     <div class="step-number">3</div>
                     <div class="step-text">
-                        <strong>Pega tu licencia</strong> en el campo que aparecerá (Ctrl+V o Cmd+V)
+                        <strong>La licencia aparecerá automáticamente</strong> en el campo de activación
                     </div>
                 </div>
 
@@ -352,7 +352,7 @@
 
             <!-- CTA -->
             <div class="cta-section">
-                <a href="index.html" class="cta-btn">
+                <a href="index.html" class="cta-btn" id="goToAppBtn">
                     🚀 Ir a la Aplicación
                 </a>
                 <p style="margin-top: 15px; color: #6b7280; font-size: 14px;">
@@ -420,6 +420,19 @@
                 });
             }, 500);
         }
+
+        // Modificar el botón para que lleve la licencia al index.html
+        document.getElementById('goToAppBtn').addEventListener('click', function(e) {
+            const license = licenseKeyElement.textContent;
+            
+            // Si hay una licencia válida, guardarla en sessionStorage
+            if (license && license !== 'TDC-2025-XXXXX' && license !== 'Cargando...') {
+                sessionStorage.setItem('pendingLicense', license);
+                console.log('Licencia guardada para activación:', license);
+            }
+            
+            // Dejar que el enlace funcione normalmente
+        });
     </script>
 </body>
 </html>
