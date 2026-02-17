@@ -17,12 +17,10 @@ class ProfileUI {
     }
 
     setupEventListeners() {
-        // Botón crear perfil
         document.getElementById('createProfileBtn').addEventListener('click', () => {
             this.showCreateProfileModal();
         });
 
-        // Modal crear perfil
         document.getElementById('closeCreateProfileModal').addEventListener('click', () => {
             this.hideCreateProfileModal();
         });
@@ -35,7 +33,6 @@ class ProfileUI {
             this.handleCreateProfile();
         });
 
-        // Modal PIN
         document.getElementById('closePinModal').addEventListener('click', () => {
             this.hidePinModal();
         });
@@ -48,7 +45,6 @@ class ProfileUI {
             this.handlePinSubmit();
         });
 
-        // Enter en inputs
         document.getElementById('pinInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.handlePinSubmit();
@@ -61,7 +57,6 @@ class ProfileUI {
             }
         });
 
-        // Botón cerrar sesión
         document.getElementById('logoutBtn').addEventListener('click', () => {
             this.handleLogout();
         });
@@ -69,14 +64,12 @@ class ProfileUI {
 
     checkLoginStatus() {
         if (this.profileManager.isLoggedIn()) {
-            // Usuario ya tiene sesión activa
             this.hideProfileScreen();
             this.updateHeaderProfile();
             if (this.onProfileLogin) {
                 this.onProfileLogin();
             }
         } else {
-            // Mostrar pantalla de perfiles
             this.showProfileScreen();
         }
     }
@@ -140,13 +133,11 @@ class ProfileUI {
             `;
         }).join('');
 
-        // Gestionar límite de perfiles
         if (profiles.length >= MAX_PROFILES) {
             createBtn.disabled = true;
             createBtn.style.opacity = '0.5';
             createBtn.title = `Límite alcanzado (${MAX_PROFILES} perfiles máximo)`;
             
-            // Agregar mensaje de límite
             profileList.innerHTML += `
                 <div style="text-align: center; padding: 20px; background: #fef2f2; border-radius: 12px; border-left: 4px solid #f56565; margin-top: 16px;">
                     <i class="fas fa-info-circle" style="color: #f56565; font-size: 20px; margin-bottom: 8px;"></i>
@@ -162,7 +153,6 @@ class ProfileUI {
             createBtn.title = `Crear Nuevo Perfil (${profiles.length}/${MAX_PROFILES})`;
         }
 
-        // Agregar event listeners a las tarjetas
         profileList.querySelectorAll('.profile-card').forEach(card => {
             card.addEventListener('click', () => {
                 const profileId = card.dataset.profileId;
@@ -221,7 +211,6 @@ class ProfileUI {
         const pinConfirm = document.getElementById('profilePinConfirm').value;
         const recoveryWord = document.getElementById('profileRecoveryWord').value.trim();
 
-        // Validaciones
         if (!name) {
             alert('⚠️ Por favor ingresa un nombre para el perfil');
             return;
@@ -245,7 +234,6 @@ class ProfileUI {
         try {
             const profile = this.profileManager.createProfile(name, pin, recoveryWord);
             
-            // Hacer login automáticamente con el nuevo perfil
             this.profileManager.loginProfile(profile.id, pin);
             
             this.hideCreateProfileModal();
@@ -328,5 +316,4 @@ class ProfileUI {
     }
 }
 
-// Exportar para uso global
 window.ProfileUI = ProfileUI;
