@@ -362,7 +362,7 @@ class BankFileParser {
 
     /**
      * Identifica las columnas del archivo
-     * OPTIMIZADO PARA SANTANDER, BBVA, CAIXABANK, SABADELL + NEOBANCOS
+     * OPTIMIZADO PARA SANTANDER, BBVA, CAIXABANK, SABADELL
      */
     identifyColumns(headers) {
         const columns = {};
@@ -534,12 +534,8 @@ class BankFileParser {
         let amountStr = null;
         let amount = null;
 
-        if (columns.amount !== undefined) {
-            // Columna única de importe
-            amountStr = values[columns.amount];
-            amount = this.parseAmount(amountStr ? amountStr.toString() : '');
-        } else if (columns.debit !== undefined || columns.credit !== undefined) {
-            // Columnas separadas (Openbank, algunos bancos tradicionales)
+        // PRIORIDAD 1: Verificar si hay columnas separadas CARGO/ABONO (aunque exista columna importe)
+        if (columns.debit !== undefined || columns.credit !== undefined) {
             const debitStr = columns.debit !== undefined ? values[columns.debit] : null;
             const creditStr = columns.credit !== undefined ? values[columns.credit] : null;
             
@@ -554,6 +550,16 @@ class BankFileParser {
             else if (creditAmount !== null && creditAmount !== 0) {
                 amount = Math.abs(creditAmount);
             }
+            // Si ambas están vacías, intentar con columna única
+            else if (columns.amount !== undefined) {
+                amountStr = values[columns.amount];
+                amount = this.parseAmount(amountStr ? amountStr.toString() : '');
+            }
+        }
+        // PRIORIDAD 2: Si no hay cargo/abono, usar columna única
+        else if (columns.amount !== undefined) {
+            amountStr = values[columns.amount];
+            amount = this.parseAmount(amountStr ? amountStr.toString() : '');
         }
 
         // Si falta fecha O importe, descartar
@@ -712,20 +718,30 @@ class BankFileParser {
      * Parsea un importe en varios formatos
      */
     parseAmount(amountStr) {
-        if (!amountStr) return null;
+        if (!amountStr && amountStr !== 0) return null;
+
+        // Si ya es un número (no string), retornarlo directamente
+        if (typeof amountStr === 'number') {
+            return amountStr;
+        }
 
         let str = amountStr.toString().trim();
         if (!str) return null;
 
-        // Si ya es un número válido
-        const directNum = parseFloat(amountStr);
+        // Logging para debug
+        const originalStr = str;
+
+        // Si ya es un número válido en formato string
+        const directNum = parseFloat(str);
         if (!isNaN(directNum) && str.match(/^-?\d+\.?\d*$/)) {
+            console.log(`💰 Importe directo: "${originalStr}" → ${directNum}`);
             return directNum;
         }
 
-        // Detectar signo
+        // Detectar signo ANTES de limpiar
         let isNegative = false;
-        if (str.startsWith('-') || str.startsWith('(') || str.toLowerCase().includes('debe')) {
+        if (str.startsWith('-') || str.startsWith('−') || str.startsWith('(') || 
+            str.toLowerCase().includes('debe') || str.toLowerCase().includes('cargo')) {
             isNegative = true;
         }
 
@@ -734,10 +750,17 @@ class BankFileParser {
             .replace(/[€$£¥]/g, '')
             .replace(/[\s]/g, '')
             .replace(/[()]/g, '')
-            .replace(/debe|haber|dr|cr/gi, '')
+            .replace(/−/g, '-')  // Guion largo unicode
+            .replace(/debe|haber|dr|cr|cargo|abono/gi, '')
             .trim();
 
-        if (!cleaned || cleaned === '-') return null;
+        // Si empieza con guion, marcarlo
+        if (cleaned.startsWith('-')) {
+            isNegative = true;
+            cleaned = cleaned.substring(1); // Quitar el signo para procesarlo
+        }
+
+        if (!cleaned || cleaned === '-' || cleaned === '') return null;
 
         // Detectar formato
         const hasComma = cleaned.includes(',');
@@ -771,17 +794,24 @@ class BankFileParser {
             }
         }
 
-        // Limpiar caracteres no numéricos
-        cleaned = cleaned.replace(/[^\d.-]/g, '');
+        // Limpiar caracteres no numéricos (excepto punto decimal)
+        cleaned = cleaned.replace(/[^\d.]/g, '');
 
         let amount = parseFloat(cleaned);
 
         if (isNaN(amount)) {
+            console.warn('⚠️ No se pudo parsear importe:', originalStr, '→ cleaned:', cleaned);
             return null;
         }
 
+        // Aplicar signo negativo
         if (isNegative && amount > 0) {
             amount = -amount;
+        }
+
+        // Log para debug en transacciones sospechosas
+        if (Math.abs(amount) > 1000) {
+            console.log(`💰 Importe parseado: "${originalStr}" → ${amount} (negativo: ${isNegative})`);
         }
 
         return amount;
