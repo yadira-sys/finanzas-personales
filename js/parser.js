@@ -1,5 +1,30 @@
 /**
- * Parser de archivos bancarios CSV y Excel
+ * Parser MEJORADO de archivos bancarios CSV y Excel
+ * 
+ * ✅ BANCOS SOPORTADOS:
+ * 
+ * 🇪🇸 BANCOS TRADICIONALES ESPAÑOLES:
+ * - Santander
+ * - BBVA
+ * - CaixaBank / La Caixa (bilingüe: catalán/español)
+ * - Banco Sabadell
+ * - Bankinter
+ * - Unicaja
+ * - Openbank (columnas cargo/abono separadas)
+ * 
+ * 🌍 NEOBANCOS INTERNACIONALES:
+ * - ING España
+ * - Revolut (formato internacional)
+ * - N26 (formato internacional)
+ * 
+ * 📋 CARACTERÍSTICAS:
+ * - Detección automática de encabezados (hasta fila 25)
+ * - Soporte multiidioma: español, inglés, catalán
+ * - Normalización de acentos automática
+ * - Fechas: DD/MM/YYYY, YYYY-MM-DD, Excel serial numbers
+ * - Importes: formato europeo (1.234,56) y anglosajón (1,234.56)
+ * - Columnas separadas cargo/abono
+ * - Logging detallado para debug
  */
 
 class BankFileParser {
@@ -9,8 +34,6 @@ class BankFileParser {
 
     /**
      * Procesa un archivo bancario
-     * @param {File} file - Archivo a procesar
-     * @returns {Promise<Array>} - Array de transacciones
      */
     async parseFile(file) {
         const extension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
@@ -78,7 +101,7 @@ class BankFileParser {
             try {
                 const values = this.parseCSVLine(lines[i], delimiter);
                 
-                if (values.length < 3) continue; // Línea vacía o incompleta
+                if (values.length < 3) continue;
 
                 const transaction = this.createTransaction(values, columns);
                 
@@ -106,13 +129,15 @@ class BankFileParser {
                     const workbook = XLSX.read(data, { 
                         type: 'array',
                         cellDates: true,
-                        cellText: false
+                        cellText: false,
+                        cellNF: false,
+                        cellHTML: false
                     });
                     
                     // Tomar la primera hoja
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     
-                    // Convertir a array de objetos
+                    // Convertir a array de arrays
                     const jsonData = XLSX.utils.sheet_to_json(firstSheet, { 
                         header: 1,
                         raw: false,
@@ -125,14 +150,18 @@ class BankFileParser {
                         row && row.some(cell => cell && cell.toString().trim() !== '')
                     );
 
-                    console.log('📊 Datos del Excel:', filteredData.slice(0, 5));
+                    console.log('📊 Excel cargado:', {
+                        totalFilas: filteredData.length,
+                        hoja: workbook.SheetNames[0],
+                        primeras5Filas: filteredData.slice(0, 5)
+                    });
                     
                     // Parsear los datos del Excel
                     const transactions = this.parseExcelData(filteredData);
                     resolve(transactions);
                 } catch (error) {
-                    console.error('Error parseando Excel:', error);
-                    reject(error);
+                    console.error('❌ Error parseando Excel:', error);
+                    reject(new Error(`Error al procesar el Excel: ${error.message}`));
                 }
             };
             
@@ -146,63 +175,113 @@ class BankFileParser {
      */
     parseExcelData(data) {
         if (data.length < 2) {
-            throw new Error('El archivo está vacío o no tiene datos');
+            throw new Error('El archivo está vacío o no tiene datos suficientes');
         }
 
-        // Buscar la fila de encabezados (puede no ser la primera)
+        // Buscar la fila de encabezados (verificar hasta fila 25 para soportar todos los bancos)
         let headerRowIndex = -1;
         let headers = [];
 
-        for (let i = 0; i < Math.min(10, data.length); i++) {
+        // Palabras clave para detectar encabezados (sin acentos para mayor compatibilidad)
+        const headerKeywords = [
+            'fecha', 'date', 'data',
+            'descripcion', 'concepto', 'description', 'literal', 'movimiento', 'operacion',
+            'importe', 'amount', 'import', 'euros', 'cargo', 'abono',
+            'saldo', 'balance'
+        ];
+
+        for (let i = 0; i < Math.min(25, data.length); i++) {
             const row = data[i];
-            const rowText = row.join('').toLowerCase();
+            if (!row || row.length === 0) continue;
             
-            // Buscar palabras clave que indiquen encabezados
-            if (rowText.includes('fecha') || 
-                rowText.includes('descripci') || 
-                rowText.includes('concepto') ||
-                rowText.includes('importe') ||
-                rowText.includes('movimiento')) {
-                
+            const rowText = row.join('|').toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, ''); // Quitar acentos
+            
+            // Verificar si la fila contiene al menos 2 palabras clave
+            const matchCount = headerKeywords.filter(keyword => rowText.includes(keyword)).length;
+            
+            if (matchCount >= 2) {
                 headerRowIndex = i;
-                headers = row.map(h => (h || '').toString().trim().toLowerCase());
-                console.log(`✅ Encabezados encontrados en fila ${i}:`, headers);
+                headers = row.map(h => (h || '').toString().trim());
+                console.log(`✅ Encabezados encontrados en fila ${i} (${matchCount} coincidencias):`, headers);
                 break;
             }
         }
 
-        // Si no se encontraron encabezados, asumir que la primera fila es encabezado
+        // Si no se encontraron, buscar primera fila con 3+ columnas no vacías
         if (headerRowIndex === -1) {
+            for (let i = 0; i < Math.min(15, data.length); i++) {
+                const row = data[i];
+                if (!row) continue;
+                
+                const nonEmptyCells = row.filter(cell => cell && cell.toString().trim() !== '').length;
+                if (nonEmptyCells >= 3) {
+                    headerRowIndex = i;
+                    headers = row.map(h => (h || '').toString().trim());
+                    console.warn(`⚠️ Usando fila ${i} como encabezado (${nonEmptyCells} columnas):`, headers);
+                    break;
+                }
+            }
+        }
+        
+        // Último recurso: usar primera fila
+        if (headerRowIndex === -1 && data.length > 0) {
             headerRowIndex = 0;
-            headers = data[0].map(h => (h || '').toString().trim().toLowerCase());
-            console.log('⚠️ Asumiendo primera fila como encabezado:', headers);
+            headers = data[0].map(h => (h || '').toString().trim());
+            console.warn('⚠️ Usando primera fila como encabezado por defecto');
+        }
+
+        if (headers.length === 0) {
+            throw new Error('No se pudo detectar la estructura del archivo Excel');
         }
 
         // Identificar columnas
         const columns = this.identifyColumns(headers);
 
-        if (!columns.date && !columns.description && !columns.amount) {
-            console.error('❌ No se identificaron columnas. Headers:', headers);
-            throw new Error('No se pudieron identificar las columnas necesarias (fecha, descripción, importe)');
+        // Validar que al menos tenemos: fecha Y (importe O cargo/abono)
+        const hasDate = columns.date !== undefined;
+        const hasAmount = columns.amount !== undefined || columns.debit !== undefined || columns.credit !== undefined;
+        
+        if (!hasDate || !hasAmount) {
+            console.error('❌ Columnas identificadas:', columns);
+            console.error('📊 Encabezados:', headers);
+            console.error('📊 Primeras 5 filas:', data.slice(0, 5));
+            throw new Error('No se pudieron identificar las columnas mínimas necesarias (fecha + importe/cargo/abono). El archivo puede tener un formato no estándar.');
         }
 
         console.log('✅ Columnas identificadas:', columns);
 
         // Parsear datos
         const transactions = [];
+        let skippedRows = 0;
+        let errorRows = 0;
         
         for (let i = headerRowIndex + 1; i < data.length; i++) {
             try {
                 const values = data[i];
                 
-                // Saltar filas vacías o muy cortas
-                if (!values || values.length < 2) continue;
+                // Saltar filas vacías
+                if (!values || values.length < 2) {
+                    skippedRows++;
+                    continue;
+                }
                 
-                // Saltar filas que parecen totales o resúmenes
-                const firstCell = (values[0] || '').toString().toLowerCase();
-                if (firstCell.includes('total') || 
-                    firstCell.includes('saldo') || 
-                    firstCell.includes('resumen')) {
+                // Saltar filas completamente vacías
+                const hasContent = values.some(v => v && v.toString().trim() !== '');
+                if (!hasContent) {
+                    skippedRows++;
+                    continue;
+                }
+                
+                // Saltar filas de totales/saldos/resúmenes
+                const firstCells = values.slice(0, 3).join('').toLowerCase();
+                if (firstCells.includes('total') || 
+                    firstCells.includes('saldo inicial') ||
+                    firstCells.includes('saldo final') ||
+                    firstCells.includes('resumen') ||
+                    firstCells.includes('subtotal') ||
+                    firstCells.includes('suma')) {
+                    skippedRows++;
                     continue;
                 }
 
@@ -210,17 +289,24 @@ class BankFileParser {
                 
                 if (transaction) {
                     transactions.push(transaction);
+                } else {
+                    errorRows++;
                 }
             } catch (error) {
-                console.warn(`Error en fila ${i + 1}:`, error.message);
+                console.warn(`Advertencia en fila ${i + 1}:`, error.message);
+                errorRows++;
             }
         }
 
+        console.log(`📊 Resultado del parsing:`);
+        console.log(`  ✅ ${transactions.length} transacciones extraídas`);
+        console.log(`  ⚠️ ${skippedRows} filas omitidas`);
+        console.log(`  ❌ ${errorRows} filas con errores`);
+
         if (transactions.length === 0) {
-            throw new Error('No se pudieron extraer transacciones del archivo. Verifica el formato.');
+            throw new Error('No se pudieron extraer transacciones válidas. Verifica que el archivo contenga movimientos bancarios.');
         }
 
-        console.log(`✅ ${transactions.length} transacciones extraídas`);
         return transactions;
     }
 
@@ -276,91 +362,209 @@ class BankFileParser {
 
     /**
      * Identifica las columnas del archivo
+     * OPTIMIZADO PARA SANTANDER, BBVA, CAIXABANK, SABADELL + NEOBANCOS
      */
     identifyColumns(headers) {
         const columns = {};
 
-        // Mapeo de posibles nombres de columnas (más exhaustivo)
+        // Normalizar función
+        const normalize = (str) => str.toLowerCase().trim()
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Quitar acentos
+            .replace(/\s+/g, ' ');
+
+        // Mapeo exhaustivo para bancos españoles + neobancos
         const mappings = {
             date: [
-                'fecha', 'date', 'fecha operacion', 'fecha operación', 'fecha valor', 
+                // Español (Santander, BBVA, Caixa, Sabadell, Bankinter, Unicaja)
+                'fecha', 'fecha operacion', 'fecha operación', 'fecha valor', 'fecha contable',
                 'f.valor', 'f.operacion', 'f.operación', 'f. valor', 'f. operación',
-                'fec.', 'fecha mov', 'fecha mvto', 'fecha movimiento'
+                'f. operacion', 'f operacion', 'f operación',
+                'fec.', 'fecha mov', 'fecha mvto', 'fecha movimiento',
+                'fecha de operacion', 'fecha de operación', 'fecha de la operacion',
+                'fecha op.', 'fecha op', 'fecha oper.', 'f.contable', 'f contable',
+                // Inglés (ING, Revolut, N26)
+                'date', 'operation date', 'value date', 'transaction date',
+                'completed date', 'started date',
+                // Catalán (CaixaBank)
+                'data', 'data operacio', 'data operació', 'data valor'
             ],
             description: [
-                'descripcion', 'descripción', 'concepto', 'description', 'detalle', 
-                'movimiento', 'observaciones', 'desc.', 'concepto/movimiento',
-                'concepto movimiento', 'texto', 'información', 'informacion'
+                // Español
+                'descripcion', 'descripción', 'concepto', 'detalle', 'movimiento', 'operacion', 'operación',
+                'observaciones', 'desc.', 'desc', 'concepto/movimiento', 'concepto movimiento',
+                'texto', 'información', 'informacion', 'literal',
+                'descripcion del movimiento', 'descripción del movimiento',
+                'descripcion de la operacion', 'descripción de la operación',
+                'descripcion del moviment', 'descripció del moviment',
+                'movimientos', 'tipo de movimiento',
+                // Inglés
+                'description', 'details', 'transaction details', 'narrative', 'payee',
+                'payment reference', 'transaction type',
+                // Catalán
+                'descripcio', 'descripció', 'concepte'
             ],
             amount: [
-                'importe', 'amount', 'cantidad', 'monto', 'cargo/abono', 'debe/haber',
-                'imp.', 'euros', 'eur', 'debe', 'haber', 'cargo', 'abono',
-                'import.', 'importe €', 'importe eur'
+                // Español (columna única)
+                'importe', 'cantidad', 'monto', 'cargo/abono', 'debe/haber',
+                'imp.', 'import.', 'importe €', 'importe eur', 'importe (eur)',
+                'importe operacion', 'importe operación', 'imp. operacion', 'imp. operación',
+                'total', 'valor', 'importe en euros', 'euros', 'eur',
+                'importe euros',
+                // Inglés
+                'amount', 'amount (eur)', 'amount eur', 'value',
+                // Catalán
+                'import', 'import (eur)'
+            ],
+            debit: [
+                // Columnas separadas para gastos (Openbank, algunos tradicionales)
+                'debe', 'cargo', 'cargos', 'debit', 'salida', 'gasto'
+            ],
+            credit: [
+                // Columnas separadas para ingresos
+                'haber', 'abono', 'abonos', 'credit', 'entrada', 'ingreso'
             ],
             balance: [
-                'saldo', 'balance', 'saldo final', 'saldo disponible', 
-                'saldo actual', 'sdo.', 'disponible'
+                // Español
+                'saldo', 'saldo final', 'saldo disponible', 'saldo actual', 'saldo contable',
+                'sdo.', 'disponible',
+                'saldo disponible despues de la operacion',
+                'saldo disponible después de la operación',
+                'saldo disponible després de l\'operació',
+                'saldo despues', 'saldo después', 'saldo (eur)',
+                // Inglés
+                'balance', 'balance (eur)', 'available balance', 'current balance',
+                // Catalán
+                'saldo disponible'
             ]
         };
 
-        headers.forEach((header, index) => {
-            const cleanHeader = header.toLowerCase().trim();
-            
+        // Normalizar headers
+        const normalizedHeaders = headers.map(h => normalize(h.toString()));
+
+        normalizedHeaders.forEach((normalizedHeader, index) => {
             for (const [key, variations] of Object.entries(mappings)) {
-                // Buscar coincidencias exactas primero
-                if (variations.includes(cleanHeader)) {
-                    if (!columns[key]) { // Solo si no se ha asignado aún
+                // Normalizar variaciones
+                const normalizedVariations = variations.map(v => normalize(v));
+                
+                // Buscar coincidencia exacta primero
+                if (normalizedVariations.includes(normalizedHeader)) {
+                    if (!columns[key]) {
                         columns[key] = index;
+                        console.log(`✅ Columna "${key}" → posición ${index}: "${headers[index]}"`);
                     }
                     break;
                 }
                 
-                // Luego buscar coincidencias parciales
-                if (variations.some(v => cleanHeader.includes(v))) {
-                    if (!columns[key]) {
-                        columns[key] = index;
-                    }
+                // Buscar coincidencias parciales
+                const matchPartial = normalizedVariations.some(v => 
+                    (normalizedHeader.includes(v) && v.length > 3) || 
+                    (v.includes(normalizedHeader) && normalizedHeader.length > 3)
+                );
+                
+                if (matchPartial && !columns[key]) {
+                    columns[key] = index;
+                    console.log(`✅ Columna "${key}" (parcial) → posición ${index}: "${headers[index]}"`);
                     break;
                 }
             }
         });
 
-        // Si no se encontró "amount", buscar columnas numéricas
-        if (!columns.amount) {
+        // Estrategias de fallback
+        
+        // Si no se encontró fecha, buscar primera columna con formato de fecha
+        if (!columns.date) {
+            console.warn('⚠️ Fecha no encontrada por nombre, buscando por contenido...');
+            // Buscar en headers que contengan números o barras
             for (let i = 0; i < headers.length; i++) {
-                const header = headers[i].toLowerCase();
-                // Buscar columnas que contengan símbolos monetarios o sean números
-                if (header.includes('€') || header.includes('$') || 
-                    /\d/.test(header) || header === '') {
-                    columns.amount = i;
-                    console.log(`ℹ️ Columna de importe detectada por contenido en posición ${i}`);
+                const h = headers[i].toString();
+                if (/\d{1,2}[\/\-\.]\d{1,2}/.test(h) || h.toLowerCase().includes('20')) {
+                    columns.date = i;
+                    console.log(`✅ Columna de fecha detectada por patrón en posición ${i}`);
                     break;
                 }
             }
         }
+        
+        // Si no se encontró importe, buscar columnas con símbolos monetarios o números
+        if (!columns.amount) {
+            console.warn('⚠️ Importe no encontrado por nombre, buscando por contenido...');
+            for (let i = 0; i < headers.length; i++) {
+                const h = normalizedHeaders[i];
+                if (h.includes('€') || h.includes('$') || h.includes('eur') || 
+                    /^\d+[,.]?\d*$/.test(h) || h === '' || h.trim() === '') {
+                    columns.amount = i;
+                    console.log(`✅ Columna de importe detectada por contenido en posición ${i}`);
+                    break;
+                }
+            }
+        }
+        
+        // Si no se encontró descripción, usar columna de texto más larga (excluyendo fecha/importe/saldo)
+        if (!columns.description) {
+            console.warn('⚠️ Descripción no encontrada, buscando columna de texto...');
+            let maxTextLength = 0;
+            for (let i = 0; i < headers.length; i++) {
+                if (i === columns.date || i === columns.amount || i === columns.balance) continue;
+                
+                const h = headers[i].toString();
+                if (h.length > maxTextLength && h.length > 3) {
+                    columns.description = i;
+                    maxTextLength = h.length;
+                }
+            }
+            if (columns.description !== undefined) {
+                console.log(`✅ Columna de descripción detectada en posición ${columns.description}`);
+            }
+        }
 
+        console.log('📋 Mapa final de columnas:', columns);
         return columns;
     }
 
     /**
      * Crea un objeto transacción desde los valores parseados
+     * Soporta tanto columna única de importe como columnas separadas cargo/abono
      */
     createTransaction(values, columns) {
-        // Extraer valores con seguridad
+        // Extraer valores
         const dateStr = columns.date !== undefined ? values[columns.date] : null;
         const description = columns.description !== undefined ? values[columns.description] : null;
-        const amountStr = columns.amount !== undefined ? values[columns.amount] : null;
+        
+        // Intentar obtener importe de columna única o de cargo/abono separados
+        let amountStr = null;
+        let amount = null;
 
-        // Validar que tenemos los datos mínimos
-        if (!dateStr && !description && !amountStr) {
-            return null; // Fila completamente vacía
+        if (columns.amount !== undefined) {
+            // Columna única de importe
+            amountStr = values[columns.amount];
+            amount = this.parseAmount(amountStr ? amountStr.toString() : '');
+        } else if (columns.debit !== undefined || columns.credit !== undefined) {
+            // Columnas separadas (Openbank, algunos bancos tradicionales)
+            const debitStr = columns.debit !== undefined ? values[columns.debit] : null;
+            const creditStr = columns.credit !== undefined ? values[columns.credit] : null;
+            
+            const debitAmount = this.parseAmount(debitStr ? debitStr.toString() : '');
+            const creditAmount = this.parseAmount(creditStr ? creditStr.toString() : '');
+            
+            // Si hay cargo (debe), es negativo
+            if (debitAmount !== null && debitAmount !== 0) {
+                amount = -Math.abs(debitAmount);
+            }
+            // Si hay abono (haber), es positivo
+            else if (creditAmount !== null && creditAmount !== 0) {
+                amount = Math.abs(creditAmount);
+            }
         }
 
-        // Si falta algún campo crítico, intentar recuperar
-        if (!dateStr || !description || !amountStr) {
-            console.warn('⚠️ Fila incompleta:', { dateStr, description, amountStr });
+        // Si falta fecha O importe, descartar
+        if (!dateStr || amount === null || amount === 0) {
             return null;
         }
+
+        // Si falta descripción, usar placeholder
+        const finalDescription = description && description.toString().trim() ? 
+            description.toString().trim() : 
+            'Movimiento bancario';
 
         // Parsear fecha
         const date = this.parseDate(dateStr.toString());
@@ -369,33 +573,25 @@ class BankFileParser {
             return null;
         }
 
-        // Parsear importe
-        const amount = this.parseAmount(amountStr.toString());
-        if (amount === null || isNaN(amount)) {
+        // Validar importe
+        if (isNaN(amount)) {
             console.warn('⚠️ Importe inválido:', amountStr);
             return null;
         }
 
-        // Limpiar descripción
-        const cleanDescription = description.toString().trim();
-        if (!cleanDescription) {
-            console.warn('⚠️ Descripción vacía');
-            return null;
-        }
-
         // Categorizar automáticamente
-        const category = categorizeTransaction(cleanDescription);
+        const category = categorizeTransaction(finalDescription);
 
         // Determinar tipo
         const type = determineTransactionType(amount, category);
 
-        // Determinar fuente de ingreso si es un ingreso
-        const incomeSource = type === 'income' ? formatIncomeSource(cleanDescription) : null;
+        // Determinar fuente de ingreso
+        const incomeSource = type === 'income' ? formatIncomeSource(finalDescription) : null;
 
         return {
             id: this.generateTransactionId(),
             date: date,
-            description: cleanDescription,
+            description: finalDescription,
             amount: amount,
             category: category,
             type: type,
@@ -406,18 +602,19 @@ class BankFileParser {
 
     /**
      * Parsea una fecha en varios formatos
+     * Soporta: DD/MM/YYYY, YYYY-MM-DD, fechas Excel, DD mes YYYY, etc.
      */
     parseDate(dateStr) {
         if (!dateStr) return null;
 
-        // Convertir a string
         const str = dateStr.toString().trim();
         if (!str) return null;
 
-        // Si es un número (fecha de Excel - número de días desde 1900)
+        // Si es un número de Excel (días desde 1900-01-01)
         const num = parseFloat(str);
-        if (!isNaN(num) && str.length <= 6 && num > 0) {
-            return this.excelDateToJSDate(num);
+        if (!isNaN(num) && num > 25000 && num < 65000) {
+            const date = new Date((num - 25569) * 86400 * 1000);
+            return date;
         }
 
         // Si ya es un objeto Date
@@ -425,30 +622,43 @@ class BankFileParser {
             return dateStr;
         }
 
-        // Limpiar la fecha
+        // Limpiar (mantener espacios para "15 enero 2024")
         let cleaned = str.replace(/\s+/g, ' ').trim();
 
-        // Intentar diferentes formatos
+        // Formatos comunes (ordenados por especificidad)
         const formats = [
-            // DD/MM/YYYY o DD-MM-YYYY
-            /^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/,
-            // DD/MM/YY o DD-MM-YY
-            /^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2})$/,
-            // YYYY-MM-DD o YYYY/MM/DD
+            // ISO con hora: 2026-02-14 14:32:00 (Revolut, N26)
+            /^(\d{4})-(\d{1,2})-(\d{1,2})\s+\d{1,2}:\d{1,2}(:\d{1,2})?$/,
+            // ISO: YYYY-MM-DD (ING, neobancos)
             /^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/,
-            // DD mes YYYY (ej: 15 enero 2024)
+            // Europeo: DD/MM/YYYY (mayoría de bancos españoles)
+            /^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{4})$/,
+            // Europeo corto: DD/MM/YY
+            /^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2})$/,
+            // Con nombre de mes: 15 enero 2024
             /^(\d{1,2})\s+(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\s+(\d{4})$/i,
+            // Sin año: DD/MM (usar año actual)
+            /^(\d{1,2})[\/\-\.](\d{1,2})$/
         ];
 
         for (let i = 0; i < formats.length; i++) {
-            const format = formats[i];
-            const match = cleaned.match(format);
+            const match = cleaned.match(formats[i]);
             
             if (match) {
                 let day, month, year;
                 
-                if (i === 3) {
-                    // Formato con nombre de mes
+                if (i === 0) {
+                    // ISO con hora: tomar solo la fecha
+                    year = parseInt(match[1]);
+                    month = parseInt(match[2]) - 1;
+                    day = parseInt(match[3]);
+                } else if (i === 1) {
+                    // YYYY-MM-DD
+                    year = parseInt(match[1]);
+                    month = parseInt(match[2]) - 1;
+                    day = parseInt(match[3]);
+                } else if (i === 4) {
+                    // Nombre de mes
                     const months = {
                         'enero': 0, 'febrero': 1, 'marzo': 2, 'abril': 3,
                         'mayo': 4, 'junio': 5, 'julio': 6, 'agosto': 7,
@@ -457,18 +667,17 @@ class BankFileParser {
                     day = parseInt(match[1]);
                     month = months[match[2].toLowerCase()];
                     year = parseInt(match[3]);
-                } else if (match[1].length === 4) {
-                    // YYYY-MM-DD
-                    year = parseInt(match[1]);
+                } else if (i === 5) {
+                    // Sin año
+                    day = parseInt(match[1]);
                     month = parseInt(match[2]) - 1;
-                    day = parseInt(match[3]);
+                    year = new Date().getFullYear();
                 } else {
                     // DD/MM/YYYY o DD/MM/YY
                     day = parseInt(match[1]);
                     month = parseInt(match[2]) - 1;
                     year = parseInt(match[3]);
                     
-                    // Si el año es de 2 dígitos, convertir
                     if (year < 100) {
                         year += (year < 50) ? 2000 : 1900;
                     }
@@ -484,7 +693,7 @@ class BankFileParser {
             }
         }
 
-        // Intentar con Date.parse como último recurso
+        // Último recurso: Date.parse
         try {
             const date = new Date(cleaned);
             if (!isNaN(date.getTime()) && 
@@ -493,18 +702,10 @@ class BankFileParser {
                 return date;
             }
         } catch (e) {
-            // Ignorar error
+            // Ignorar
         }
 
         return null;
-    }
-
-    /**
-     * Convierte fecha de Excel a Date de JavaScript
-     */
-    excelDateToJSDate(excelDate) {
-        const date = new Date((excelDate - 25569) * 86400 * 1000);
-        return date;
     }
 
     /**
@@ -513,7 +714,6 @@ class BankFileParser {
     parseAmount(amountStr) {
         if (!amountStr) return null;
 
-        // Convertir a string
         let str = amountStr.toString().trim();
         if (!str) return null;
 
@@ -523,76 +723,63 @@ class BankFileParser {
             return directNum;
         }
 
-        // Guardar el signo
+        // Detectar signo
         let isNegative = false;
         if (str.startsWith('-') || str.startsWith('(') || str.toLowerCase().includes('debe')) {
             isNegative = true;
         }
 
-        // Limpiar el string
+        // Limpiar
         let cleaned = str
-            .replace(/[€$£¥]/g, '') // Símbolos de moneda
-            .replace(/[\s]/g, '')    // Espacios
-            .replace(/[()]/g, '')    // Paréntesis (formato negativo)
-            .replace(/debe|haber|dr|cr/gi, '') // Palabras debe/haber
+            .replace(/[€$£¥]/g, '')
+            .replace(/[\s]/g, '')
+            .replace(/[()]/g, '')
+            .replace(/debe|haber|dr|cr/gi, '')
             .trim();
 
-        // Si está vacío después de limpiar
         if (!cleaned || cleaned === '-') return null;
 
-        // Detectar formato europeo (1.234,56) vs anglosajón (1,234.56)
+        // Detectar formato
         const hasComma = cleaned.includes(',');
         const hasDot = cleaned.includes('.');
 
         if (hasComma && hasDot) {
-            // Ambos presentes: determinar cuál es el decimal
             const lastComma = cleaned.lastIndexOf(',');
             const lastDot = cleaned.lastIndexOf('.');
-            const commaPos = cleaned.indexOf(',');
-            const dotPos = cleaned.indexOf('.');
-
-            // Verificar cuál es el separador de decimales (último que aparece)
+            
             if (lastComma > lastDot) {
-                // Formato europeo: 1.234,56
+                // Europeo: 1.234,56
                 cleaned = cleaned.replace(/\./g, '').replace(',', '.');
             } else {
-                // Formato anglosajón: 1,234.56
+                // Anglosajón: 1,234.56
                 cleaned = cleaned.replace(/,/g, '');
             }
         } else if (hasComma) {
-            // Solo coma: verificar si es miles o decimal
             const parts = cleaned.split(',');
             if (parts.length === 2 && parts[1].length <= 2) {
-                // Probablemente decimal europeo: 1234,56
+                // Decimal europeo
                 cleaned = cleaned.replace(',', '.');
             } else {
-                // Probablemente separador de miles: 1,234,567
+                // Separador de miles
                 cleaned = cleaned.replace(/,/g, '');
             }
-        }
-        // Si solo tiene punto, verificar si es miles o decimal
-        else if (hasDot) {
+        } else if (hasDot) {
             const parts = cleaned.split('.');
-            if (parts.length === 2 && parts[1].length <= 2) {
-                // Ya está en formato correcto: 1234.56
-            } else {
-                // Probablemente separador de miles: 1.234.567
+            if (parts.length > 2 || (parts.length === 2 && parts[1].length > 2)) {
+                // Separador de miles
                 cleaned = cleaned.replace(/\./g, '');
             }
         }
 
-        // Remover cualquier caracter no numérico excepto punto y signo menos
+        // Limpiar caracteres no numéricos
         cleaned = cleaned.replace(/[^\d.-]/g, '');
 
-        // Parsear el número
         let amount = parseFloat(cleaned);
 
         if (isNaN(amount)) {
-            console.warn('⚠️ No se pudo parsear importe:', amountStr);
             return null;
         }
 
-        // Aplicar signo si es negativo
         if (isNegative && amount > 0) {
             amount = -amount;
         }
@@ -601,9 +788,47 @@ class BankFileParser {
     }
 
     /**
-     * Genera un ID único para una transacción
+     * Genera un ID único
      */
     generateTransactionId() {
         return 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    /**
+     * Genera hash para detectar duplicados
+     */
+    generateTransactionHash(transaction) {
+        const dateStr = transaction.date instanceof Date ? 
+            transaction.date.toISOString().split('T')[0] : 
+            transaction.date;
+        const amount = Math.abs(transaction.amount).toFixed(2);
+        const desc = transaction.description.substring(0, 50).toLowerCase().trim();
+        
+        return `${dateStr}|${amount}|${desc}`;
+    }
+
+    /**
+     * Filtra duplicados
+     */
+    filterDuplicates(newTransactions, existingTransactions) {
+        const existingHashes = new Set();
+        existingTransactions.forEach(txn => {
+            existingHashes.add(this.generateTransactionHash(txn));
+        });
+
+        const unique = [];
+        const duplicates = [];
+
+        newTransactions.forEach(txn => {
+            const hash = this.generateTransactionHash(txn);
+            if (existingHashes.has(hash)) {
+                duplicates.push(txn);
+            } else {
+                unique.push(txn);
+                existingHashes.add(hash);
+            }
+        });
+
+        return { unique, duplicates };
     }
 }
